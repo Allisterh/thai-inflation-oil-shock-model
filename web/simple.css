@@ -36,7 +36,9 @@ body.simple h2 { font-size: 1.15rem; margin: 0 0 .6em; font-weight: 600; }
 .mini { display: inline-flex; align-items: baseline; gap: 6px; color: var(--ink-2); font-size: .92rem; }
 .mini input { width: 96px; padding: 4px 2px; font: 600 1.05rem var(--font-body); color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; text-align: right; }
 .mini input:focus { outline: none; border-bottom: 2px solid var(--accent); }
-.mini select { font: inherit; color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 4px 2px; }
+.mini select { font: inherit; color: var(--ink); background: var(--surface); border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 4px 2px; }
+/* The native dropdown list: force dark text on a light panel so it is readable in both themes. */
+select option { color: #17201b; background: #ffffff; }
 .hint { color: var(--muted); font-size: .85rem; margin: 10px 0 0; }
 @media (max-width: 720px) { .qrow { grid-template-columns: 28px 1fr; } .qctl { grid-column: 2; } .qlabel { padding-top: 0; } .qnum { padding-top: 0; } }
 
