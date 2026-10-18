@@ -1,65 +1,65 @@
 {
-  "synced_at": "2026-10-18T18:23:39+00:00",
+  "synced_at": "2026-10-18T18:26:24+00:00",
   "tpso_cpi": {
     "name": "tpso_cpi",
     "source": "TPSO Index API (cpig/filter)",
-    "fetched_at": "2026-10-18T13:29:27+00:00",
+    "fetched_at": "2026-10-18T18:26:38+00:00",
     "first_obs": "1976-01",
     "last_obs": "2026-09",
     "n_obs": 609,
     "from_cache": false,
     "errors": [],
-    "note": "TPSO lastUpdated unchanged; cache reused",
+    "note": null,
     "last_updated": "2026-10-06T04:32:39.514018Z"
   },
   "crude_monthly": {
     "name": "crude_monthly",
     "source": "World Bank Pink Sheet",
-    "fetched_at": "2026-10-18T13:29:28+00:00",
+    "fetched_at": "2026-10-18T18:26:39+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-09",
     "n_obs": 801,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx"
   },
   "usdthb_monthly_imf": {
     "name": "usdthb_monthly_imf",
     "source": "IMF IFS via DBnomics",
-    "fetched_at": "2026-10-18T13:29:29+00:00",
+    "fetched_at": "2026-10-18T18:26:41+00:00",
     "first_obs": "1957-01",
     "last_obs": "2025-07",
     "n_obs": 823,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": null
   },
   "brent_daily": {
     "name": "brent_daily",
     "source": "EIA Brent spot (RBRTEd)",
-    "fetched_at": "2026-10-18T13:29:29+00:00",
+    "fetched_at": "2026-10-18T18:26:41+00:00",
     "first_obs": "1987-05-20",
     "last_obs": "2026-10-14",
     "n_obs": 9108,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": null
   },
   "usdthb_daily": {
     "name": "usdthb_daily",
     "source": "ECB reference rate via Frankfurter",
-    "fetched_at": "2026-10-18T13:29:30+00:00",
+    "fetched_at": "2026-10-18T18:26:41+00:00",
     "first_obs": "1999-12-30",
     "last_obs": "2026-10-16",
     "n_obs": 6858,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": null
   },
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",
     "source": "EPPO oil-prices JSON",
-    "fetched_at": "2026-10-18T18:23:42+00:00",
+    "fetched_at": "2026-10-18T18:26:42+00:00",
     "first_obs": "2026-10-09",
     "last_obs": "2026-10-09",
     "n_obs": 1,
@@ -70,7 +70,7 @@
   "eppo_price_structure": {
     "name": "eppo_price_structure",
     "source": "EPPO oil-structure-prices JSON",
-    "fetched_at": "2026-10-18T18:23:42+00:00",
+    "fetched_at": "2026-10-18T18:26:42+00:00",
     "first_obs": null,
     "last_obs": "2026-10-15",
     "n_obs": 1,
@@ -81,46 +81,46 @@
   "eppo_retail_monthly": {
     "name": "eppo_retail_monthly",
     "source": "EPPO petroleum price statistics, Table 9",
-    "fetched_at": "2026-10-18T13:29:32+00:00",
+    "fetched_at": "2026-10-18T18:26:43+00:00",
     "first_obs": "2003-01",
     "last_obs": "2026-08",
     "n_obs": 284,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": null
   },
   "tpso_cpi_types": {
     "name": "tpso_cpi_types",
     "source": "TPSO Index API (regions + low income)",
-    "fetched_at": "2026-10-18T18:04:58+00:00",
+    "fetched_at": "2026-10-18T18:27:56+00:00",
     "first_obs": null,
     "last_obs": null,
-    "n_obs": 0,
+    "n_obs": 6,
     "from_cache": false,
     "errors": [],
-    "note": "TPSO lastUpdated unchanged; cache reused",
+    "note": null,
     "last_updated": "2026-10-06T04:32:39.514018Z"
   },
   "oil_fund_monthly": {
     "name": "oil_fund_monthly",
     "source": "EPPO petroleum price statistics, Table 7",
-    "fetched_at": "2026-10-18T18:04:58+00:00",
+    "fetched_at": "2026-10-18T18:27:58+00:00",
     "first_obs": "2001-01",
     "last_obs": "2026-08",
     "n_obs": 308,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": null
   },
   "food_index_monthly": {
     "name": "food_index_monthly",
     "source": "World Bank Pink Sheet food index",
-    "fetched_at": "2026-10-18T18:04:59+00:00",
+    "fetched_at": "2026-10-18T18:27:58+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-09",
     "n_obs": 801,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh"
+    "note": null
   }
 }
