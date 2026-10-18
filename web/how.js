@@ -4,7 +4,7 @@
   const T = {
     th: {
       brand: "น้ำมันกับค่าครองชีพ", title: "วิธีคิดของเรา และทำไมถึงเชื่อถือได้",
-      backSimple: "กลับไปคำนวณของคุณ", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
+      backSimple: "กลับไปคำนวณของคุณ", toMethod: "หลักฐานและวิธีคิดฉบับเต็ม", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
       asOf: (d) => `อัปเดตล่าสุด ${d}`, foot: (d) => `ข้อมูล: กระทรวงพาณิชย์ สนพ. ธนาคารโลก EIA ธนาคารกลางยุโรป อัปเดต ${d}`,
       body: (f) => `
 <p>เว็บนี้ตอบคำถามเดียว คือเมื่อราคาน้ำมันเปลี่ยน ครอบครัวไทยจะจ่ายเพิ่มเท่าไร และเมื่อไร</p>
@@ -36,7 +36,7 @@
     },
     en: {
       brand: "Oil and the cost of living", title: "How this works, and why you can trust it",
-      backSimple: "Back to your calculation", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
+      backSimple: "Back to your calculation", toMethod: "Full evidence and method", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
       asOf: (d) => `Updated ${d}`, foot: (d) => `Sources: Ministry of Commerce, EPPO, World Bank, US EIA, European Central Bank. Updated ${d}`,
       body: (f) => `
 <p>This page answers one question: when oil prices move, how much more does a Thai household end up paying, and when?</p>

@@ -104,7 +104,7 @@ thai_oil_cpi/
 ├── pipeline.py       # run everything, write results/ and web/data/latest.json
 ├── app.py            # FastAPI: web app + /api/latest, /api/project, /api/status, /api/refresh
 └── __main__.py       # python -m thai_oil_cpi {sync,run,serve}
-web/                  # index.html + simple.js (simple page), advanced.html + app.js, how.html + how.js, data/latest.json
+web/                  # index.html + simple.js (simple page), methodology.html + methodology.js (evidence page), how.html (short version), advanced.html + app.js, data/latest.json
 data/cache/           # synced series and sync_status.json (committed so the static site has data)
 data/ft_tariff.json   # ERC electricity tariff announcements (kept by hand)
 data/*.xlsx           # the original hand-curated quarterly files (kept for the notebook and a cross-check test)

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ทำไมตัวเลขนี้เชื่อถือได้</title>
+<meta name="description" content="หลักฐานว่าแบบจำลองน้ำมันกับค่าครองชีพแม่นแค่ไหน ทดสอบย้อนหลังอย่างไร ใช้ข้อมูลทางการอะไร และวิธีคิดทีละขั้น">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231d2624%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-weight=%27700%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5c543%27%3E฿%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="simple.css">
+<style>
+  .prose { max-width: 76ch; }
+  .prose h2 { font-size: 1.4rem; margin: 2em 0 .6em; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .prose h2 small { display: block; font: 500 .85rem var(--font-body); color: var(--ink-2); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+  .prose p { font-size: 1.02rem; line-height: 1.7; }
+  .prose ul, .prose ol { padding-left: 1.2em; }
+  .prose li { margin-bottom: .7em; line-height: 1.6; }
+  .prose .oneline { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.5; margin: 24px 0; padding: 16px 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .prose .claim { font-family: var(--font-display); font-size: 1.15rem; line-height: 1.55; }
+  .proof { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); margin: 18px 0 8px; }
+  .proof > div { padding: 16px 16px 16px 0; border-right: 1px solid var(--axis); }
+  .proof > div:last-child { border-right: 0; }
+  .proof > div + div { padding-left: 16px; }
+  .proof .v { display: block; font: 600 2rem var(--font-display); line-height: 1.1; margin-bottom: 6px; }
+  .proof .l { font-size: .92rem; color: var(--ink-2); line-height: 1.45; }
+  figure { margin: 18px 0 26px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: .9rem; color: var(--ink-2); line-height: 1.5; margin-top: 8px; }
+  .legend { display: flex; gap: 18px; font-size: .9rem; color: var(--ink-2); margin: 6px 0; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; }
+  table.t { width: 100%; border-collapse: collapse; font-size: .95rem; margin: 10px 0 6px; }
+  table.t th, table.t td { text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--axis); }
+  table.t th:first-child, table.t td:first-child { text-align: left; }
+  table.t thead th { font-weight: 600; border-bottom: 1px solid var(--ink); }
+  table.t td.best { font-weight: 600; color: var(--accent); }
+  .src { display: grid; grid-template-columns: 1fr auto; gap: 4px 18px; font-size: .95rem; }
+  .src dt { font-weight: 500; }
+  .src dd { margin: 0; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .src .u { grid-column: 1 / -1; color: var(--ink-2); font-size: .88rem; margin-bottom: 8px; }
+  .steps li { margin-bottom: 1em; }
+  .steps b { display: block; }
+  .links { display: flex; gap: 22px; flex-wrap: wrap; margin: 28px 0 10px; font-size: .95rem; }
+  @media (max-width: 640px) {
+    .proof { grid-template-columns: 1fr; }
+    .proof > div { border-right: 0; border-bottom: 1px solid var(--axis); padding: 14px 0; }
+    .proof > div + div { padding-left: 0; }
+    .proof > div:last-child { border-bottom: 0; }
+  }
+</style>
+</head>
+<body class="simple">
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="index.html"><span data-i18n="brand">น้ำมันกับค่าครองชีพ</span></a>
+    <button class="lang" id="langToggle" type="button" aria-label="Switch language">EN</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <p class="dateline" id="dateline"></p>
+    <h1 data-i18n="title">ทำไมตัวเลขนี้เชื่อถือได้</h1>
+    <p class="lede" data-i18n="lede"></p>
+  </section>
+  <section class="proof" id="proof" aria-label="evidence"></section>
+  <article class="prose" id="prose"></article>
+  <nav class="links">
+    <a class="more" href="index.html" data-i18n="backSimple">กลับไปคำนวณของคุณ</a>
+    <a class="more" href="how.html" data-i18n="toHow">ฉบับสั้น</a>
+    <a class="more" href="advanced.html" data-i18n="toAdvanced">ดูกราฟและรายละเอียดทั้งหมด</a>
+    <a class="more" href="https://github.com/thaileetrakul27/thai-inflation-oil-shock-model" data-i18n="toCode">โค้ดและข้อมูลทั้งหมดบน GitHub</a>
+  </nav>
+</main>
+<footer class="wrap foot"><span id="footSources"></span><a href="https://github.com/thaileetrakul27/thai-inflation-oil-shock-model">GitHub</a></footer>
+<script src="methodology.js"></script>
+</body>
+</html>
