@@ -51,7 +51,7 @@
       fbPrompt: "อยากบอกอะไรเพิ่มไหม เช่น มันเปลี่ยนวิธีวางแผนค่าใช้จ่ายของคุณอย่างไร หรืออะไรที่ยังงงอยู่ (ไม่บังคับ)",
       fbSend: "ส่งความเห็น", fbPrivacy: "ไม่เก็บชื่อหรืออีเมล ความเห็นอาจถูกนำมาแสดงบนหน้านี้", fbThanks: "ขอบคุณมาก ความเห็นของคุณช่วยให้เราทำเว็บนี้ให้ดีขึ้น", fbFail: "ส่งไม่สำเร็จ ลองใหม่อีกครั้ง",
       fbSaid: "คนอื่นบอกว่า",
-      counters: (d) => `ครอบครัวที่คำนวณแล้ว <b>${d.calc}</b> ครอบครัว${d.helped ? ` และ <b>${d.helped}</b> คนบอกว่าช่วยได้` : ""}`,
+      counters: (d) => `มีคนเข้ามาดูแล้ว <b>${d.visits}</b> ครั้ง${d.helped ? ` และ <b>${d.helped}</b> คนบอกว่าช่วยได้` : ""}`, fbEmpty: "พิมพ์ความเห็นก่อนส่ง",
       prod: { gasohol95: "แก๊สโซฮอล์ 95", gasohol91: "แก๊สโซฮอล์ 91", gasohol_e20: "แก๊สโซฮอล์ E20", diesel_b7: "ดีเซล" },
     },
     en: {
@@ -100,7 +100,7 @@
       fbPrompt: "Anything you want to add? For example how it changed the way you plan your spending, or what was still confusing. (Optional)",
       fbSend: "Send", fbPrivacy: "No name or email is collected. Comments may be shown on this page.", fbThanks: "Thank you. Your comment helps us make this better.", fbFail: "Could not send. Please try again.",
       fbSaid: "What people said",
-      counters: (d) => `<b>${d.calc}</b> families have run the numbers${d.helped ? `, and <b>${d.helped}</b> said it helped` : ""}`,
+      counters: (d) => `<b>${d.visits}</b> visits so far${d.helped ? `, and <b>${d.helped}</b> people said it helped` : ""}`, fbEmpty: "Type a comment before sending",
       prod: { gasohol95: "Gasohol 95", gasohol91: "Gasohol 91", gasohol_e20: "Gasohol E20", diesel_b7: "Diesel" },
     },
   };
@@ -183,27 +183,25 @@
   }
   const whereLabel = () => { const l = t(WHERE.find(([k]) => k === state.where)[1]); return lang === "en" ? l.toLowerCase().replace("whole country", "whole country").replace("low-income household", "low-income household group") : l; };
 
-  // ---- shared counters (Netlify function at /api/count, backed by Netlify Blobs). Silent when absent,
-  // e.g. when the page is served locally.
-  const COUNT_URL = "/api/count";
-  let counts = null; let counted = false;
-  const bump = (event) => fetch(COUNT_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ event }) })
-    .then((r) => (r.ok ? r.json() : null)).then((c) => { if (c) { counts = c; renderCounters(); } }).catch(() => {});
-  const countOnce = () => { if (counted) return; counted = true; try { if (sessionStorage.getItem("counted")) return; sessionStorage.setItem("counted", "1"); } catch (e) {} bump("calc"); };
+  // ---- shared counters and comments (Netlify function at /api/count and /api/feedback, backed by
+  // Netlify Blobs). Every page load counts one visit; every "did this help" click counts one answer.
+  // Silent when the function is absent, e.g. when the page is served locally.
+  const COUNT_URL = "/api/count", FEEDBACK_URL = "/api/feedback";
+  let counts = null;
+  const postJSON = (url, body) => fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const bump = (event) => postJSON(COUNT_URL, { event }).then((r) => (r.ok ? r.json() : null)).then((c) => { if (c) { counts = c; renderCounters(); } }).catch(() => {});
   function renderCounters() {
-    const el = $("counters"); if (!counts || !counts.calc) { el.hidden = true; return; }
-    el.innerHTML = t("counters", { calc: num(counts.calc), helped: counts.helped_yes ? num(counts.helped_yes) : 0 }); el.hidden = false;
+    const el = $("counters"); if (!counts || !counts.visit) { el.hidden = true; return; }
+    const helped = (counts.helped_yes || 0) + (counts.helped_some || 0);
+    el.innerHTML = t("counters", { visits: num(counts.visit), helped: helped ? num(helped) : 0 }); el.hidden = false;
   }
-  // ---- feedback form (Netlify Forms). The yes/some/no answer is sent at once; a comment can follow.
-  let fbAnswer = null, fbSent = false;
-  function postForm(fields) {
-    const body = new URLSearchParams(fields).toString();
-    return fetch("/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body }).then((r) => r.ok);
-  }
+  let fbAnswer = null;
   function renderFeedback() {
     chips($("fbChips"), [["fbYes", "yes"], ["fbSome", "some"], ["fbNo", "no"]].map(([k, v]) => [t(k), v]), fbAnswer, (v) => {
-      fbAnswer = v; $("fbHelped").value = v; $("fbWhere").value = state.where; $("fbLang").value = lang; $("fbMore").hidden = false; $("fbDone").hidden = true;
-      if (!fbSent) { fbSent = true; postForm({ "form-name": "feedback", helped: v, where: state.where, lang, comment: "" }).catch(() => {}); bump(v === "no" ? "helped_no" : "helped_yes"); }
+      if (v === fbAnswer) return;
+      fbAnswer = v; $("fbMore").hidden = false; $("fbDone").hidden = true;
+      bump(v === "yes" ? "helped_yes" : v === "some" ? "helped_some" : "helped_no");
+      postJSON(FEEDBACK_URL, { helped: v, where: state.where, lang, comment: "", website: $("fbHp").value }).catch(() => {});
     });
   }
   function renderTestimonials(items) {
@@ -300,13 +298,12 @@
   }
 
   $("langToggle").addEventListener("click", () => { lang = lang === "th" ? "en" : "th"; try { localStorage.setItem("lang", lang); } catch (e) {} render(); });
-  ["litres", "fuelType", "food", "elec", "other"].forEach((id) => $(id).addEventListener("input", countOnce, { once: true }));
-  document.querySelector(".panel").addEventListener("click", (e) => { if (e.target.closest(".chip")) countOnce(); });
   $("lineBtn").addEventListener("click", () => bump("share"));
   $("fbForm").addEventListener("submit", (e) => {
     e.preventDefault(); const text = $("fbText").value.trim(); const done = $("fbDone");
-    postForm({ "form-name": "feedback", helped: fbAnswer || "", where: state.where, lang, comment: text })
-      .then((ok) => { done.textContent = ok ? t("fbThanks") : t("fbFail"); done.hidden = false; if (ok) { $("fbText").value = ""; $("fbMore").hidden = true; bump("feedback"); } })
+    if (!text) { done.textContent = t("fbEmpty"); done.hidden = false; return; }
+    postJSON(FEEDBACK_URL, { helped: fbAnswer || "", where: state.where, lang, comment: text, website: $("fbHp").value })
+      .then((r) => { const ok = r.ok; done.textContent = ok ? t("fbThanks") : t("fbFail"); done.hidden = false; if (ok) { $("fbText").value = ""; $("fbMore").hidden = true; bump("comment"); } })
       .catch(() => { done.textContent = t("fbFail"); done.hidden = false; });
   });
   $("litres").addEventListener("input", (e) => { state.litres = +e.target.value || 0; render(); });
@@ -315,7 +312,7 @@
   $("elec").addEventListener("input", (e) => { state.elec = +e.target.value || 0; render(); });
   $("other").addEventListener("input", (e) => { state.other = +e.target.value || 0; render(); });
   render();
-  fetch(COUNT_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((c) => { if (c && typeof c === "object") { counts = c; renderCounters(); } }).catch(() => {});
+  bump("visit");
   fetch("data/testimonials.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && Array.isArray(j.items)) { testimonials = j.items; if (D) renderTestimonials(testimonials); } }).catch(() => {});
   fetch("data/latest.json", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((d) => { D = d; render(); })

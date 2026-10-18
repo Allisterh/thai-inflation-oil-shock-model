@@ -78,13 +78,14 @@ Energy and fuel prices react within a month and fade within a year. Food and cor
 
 ## Visitor counter, feedback and comments
 
-The front page shows how many families have run a calculation and how many said it helped, asks "Did this help you?" and takes an optional comment. All of it runs on Netlify with no extra accounts:
+The front page shows how many times it has been opened and how many people said it helped, asks "Did this help you?" and takes an optional comment. All of it runs on Netlify with no extra accounts:
 
-- **Counters**: `netlify/functions/count.mjs` is a Netlify Function served at `/api/count`, storing the counts in Netlify Blobs. Events: `calc` (first input change in a session), `helped_yes`, `helped_no`, `share`, `feedback`. `GET /api/count` returns the current counts as JSON. When the function is absent (local serving) the strip stays hidden.
-- **Feedback form**: a Netlify Form named `feedback` (fields `helped`, `where`, `lang`, `comment`). Submissions appear in the Netlify dashboard under *Site → Forms → feedback*, and Netlify can email each one to you (*Forms → Settings → Form notifications*). The free tier takes 100 submissions a month.
-- **Published comments**: nothing is shown automatically. To publish a comment, copy it into `web/data/testimonials.json` (`text`, optional `where`, `when`, `lang`) and push; the page shows up to six. Keep the original submissions as evidence.
+- **One function, two routes.** `netlify/src/api.mjs` is bundled into `netlify/functions/api.mjs` (`npm run build:functions`; the bundle is committed so the deploy needs no `npm install`). Storage is Netlify Blobs.
+- **Counters** at `/api/count`: every page load adds one `visit`; every click on yes / a little / no adds one `helped_yes` / `helped_some` / `helped_no`; shares and sent comments add `share` and `comment`. `GET /api/count` returns the counts as JSON.
+- **Comments** at `/api/feedback`: anonymous (answer, region, language, text, time; no name or email). Open `https://<your-site>/api/feedback` in a browser to read them all, newest first.
+- **Published comments**: nothing is shown automatically. To publish one, copy it into `web/data/testimonials.json` (`text`, optional `where`, `when`, `lang`) and push; the page shows up to six.
 
-The counters and form only work on the Netlify deployment, not on the local FastAPI server or GitHub Pages.
+Counts are approximate (two visitors in the same instant can lose one) and the strip stays hidden when the function is absent, for example on the local FastAPI server.
 
 ## Quick start
 

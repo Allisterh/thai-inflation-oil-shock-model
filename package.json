@@ -1,8 +1,12 @@
 {
   "name": "thai-inflation-oil-shock-model",
   "private": true,
-  "description": "Netlify Functions dependencies for the shared visit/feedback counter (netlify/functions). The site itself is static.",
-  "dependencies": {
-    "@netlify/blobs": "^8.1.0"
+  "description": "Build tooling for the Netlify Function behind the front page's counters and comments (netlify/src -> netlify/functions, bundled and committed). The site itself is static.",
+  "devDependencies": {
+    "@netlify/blobs": "^8.1.0",
+    "esbuild": "^0.28.2"
+  },
+  "scripts": {
+    "build:functions": "esbuild netlify/src/api.mjs --bundle --platform=node --target=node20 --format=esm --outfile=netlify/functions/api.mjs"
   }
 }

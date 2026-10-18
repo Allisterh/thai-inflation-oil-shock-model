@@ -1,8 +1,8 @@
 # Netlify: connect this repository (Site settings → Build & deploy → Link repository).
 # No build step: the site is the static `web/` folder, refreshed by the GitHub Action.
-# netlify/functions/count.mjs is a small function (served at /api/count) that keeps the shared
-# "families who calculated / said it helped" counters in Netlify Blobs. The feedback form on the
-# front page uses Netlify Forms; submissions appear under Site → Forms in the Netlify dashboard.
+# netlify/functions/api.mjs is a small bundled function (served at /api/count and /api/feedback)
+# that keeps the front page's visit / "it helped" counters and the anonymous comments in Netlify
+# Blobs. It is pre-bundled and committed, so the deploy installs nothing.
 [build]
   publish = "web"
   command = ""

@@ -104,12 +104,8 @@
   <section class="feedback" aria-labelledby="fbTitle">
     <p class="counters" id="counters" hidden></p>
     <h2 id="fbTitle" data-i18n="fbTitle">ตัวเลขนี้ช่วยคุณได้ไหม</h2>
-    <form id="fbForm" name="feedback" method="POST" data-netlify="true" netlify-honeypot="website" action="/">
-      <input type="hidden" name="form-name" value="feedback">
-      <input type="hidden" name="helped" id="fbHelped" value="">
-      <input type="hidden" name="where" id="fbWhere" value="">
-      <input type="hidden" name="lang" id="fbLang" value="">
-      <p class="hp"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></p>
+    <form id="fbForm" autocomplete="off">
+      <p class="hp"><label>Website <input name="website" id="fbHp" tabindex="-1" autocomplete="off"></label></p>
       <div class="seg" id="fbChips"></div>
       <div class="fb-more" id="fbMore" hidden>
         <label class="fb-label" for="fbText" data-i18n="fbPrompt">อยากบอกอะไรเพิ่มไหม เช่น มันเปลี่ยนวิธีวางแผนค่าใช้จ่ายของคุณอย่างไร (ไม่บังคับ)</label>
