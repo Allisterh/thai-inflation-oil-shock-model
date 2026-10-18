@@ -54,6 +54,8 @@
       otherHint: "Rent, household items, clothes, bus and train fares, medical, school fees", bahtPerMonth: "baht a month",
       factsTitle: "Today's numbers", asOf: (d) => `Updated ${d}`, panelTitle: "Your household", perMonthHint: "All amounts are per month. Rough numbers are fine.",
       nowKicker: "Today, compared with a year ago", nextKicker: "What is still coming",
+      copy: "Copy my result", shareLine: "Share on LINE", copied: "Copied",
+      shareText: (d) => `Oil prices went up. My family is already paying about ${d.now} baht a month more than a year ago, with about ${d.next} more likely to come. Check yours: `,
       nowLead: "Compared with a year ago, you are already paying about", nowLeadLess: "Compared with a year ago, you are actually paying less, by about",
       nowNote: (d) => `That is ${d.pct} of your ${d.total} baht a month. Prices as of ${d.m}.`,
       nowSource: "This part uses real numbers only: pump prices from the Energy Ministry and the latest official price figures from the Commerce Ministry. Nothing here is a prediction.",
