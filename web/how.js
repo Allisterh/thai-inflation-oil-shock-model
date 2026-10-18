@@ -18,7 +18,7 @@
 <p>สามทางเลือกที่ทำให้แบบจำลองนี้เป็นของไทย ไม่ใช่ตำรา</p>
 <ul>
 <li><strong>เราวัดราคาน้ำมันแบบที่ไทยซื้อจริง</strong> โรงกลั่นไทยอ้างอิงน้ำมันดิบดูไบ ไม่ใช่เบรนท์ และครัวเรือนจ่ายเป็นเงินบาท ราคาน้ำมันในแบบจำลองจึงเป็นดูไบคูณอัตราแลกเปลี่ยน เดือน${f.lastCrudeMonth} เบรนท์เฉลี่ย ${f.brent} ดอลลาร์ แต่ดูไบ ${f.dubai} ดอลลาร์ นี่ไม่ใช่เรื่องเล็ก</li>
-<li><strong>เรารันแบบจำลองเดียวกันสองครั้งแล้วเอาค่ากลาง</strong> ครั้งแรกใช้ราคาน้ำมันดิบเป็นตัวขับ ครั้งที่สองใช้ราคาหน้าปั๊มในกรุงเทพ ครั้งที่สองสำคัญเพราะราคาหน้าปั๊มมีทุกการตัดสินใจของรัฐตั้งแต่ปี 2546 อยู่ในนั้นแล้ว ทั้งการตรึงดีเซล เงินกองทุนน้ำมัน และการลดภาษีสรรพสามิต แบบจำลองที่เรียนรู้จากราคาหน้าปั๊มจึงเรียนรู้ด้วยว่ารัฐมักพยุงแค่ไหน หน้าเว็บแสดงค่าตรงกลางของสองแบบ และช่วงระหว่างทั้งสอง</li>
+<li><strong>เรารันแบบจำลองเดียวกันสองครั้งแล้วเอาค่ากลาง</strong> ครั้งแรกใช้ราคาน้ำมันดิบเป็นตัวขับ ครั้งที่สองใช้ราคาหน้าปั๊มในกรุงเทพ ครั้งที่สองสำคัญเพราะราคาหน้าปั๊มมีทุกการตัดสินใจของรัฐตั้งแต่ปี 2546 อยู่ในนั้นแล้ว ทั้งการตรึงดีเซล เงินกองทุนน้ำมัน และการลดภาษีสรรพสามิต แบบจำลองที่เรียนรู้จากราคาหน้าปั๊มจึงเรียนรู้ด้วยว่ารัฐมักพยุงแค่ไหน ในการทดสอบย้อนหลัง แบบนี้แม่นกว่าแบบน้ำมันดิบอย่างชัดเจน จึงเป็นตัวเลขหลักบนหน้าเว็บ ส่วนแบบน้ำมันดิบแสดงไว้เป็นตัวเลขเปรียบเทียบ</li>
 <li><strong>เราประมาณเส้นโค้งแยกตามประเภทค่าใช้จ่าย</strong> พลังงาน น้ำมันรถ ค่าไฟและก๊าซ ค่ารถสาธารณะ อาหาร และของอื่น ๆ ต่างมีเส้นโค้งของตัวเอง แล้วงบของคุณเองเป็นตัวกำหนดว่าแต่ละเส้นสำคัญแค่ไหน ครอบครัวที่ไม่มีรถได้คำตอบต่างจากครอบครัวที่เติมเดือนละ 150 ลิตรมาก และควรเป็นเช่นนั้น</li>
 </ul>
 
@@ -48,7 +48,7 @@
 <p>Three choices make this version fit Thailand rather than a textbook:</p>
 <ul>
 <li><strong>We measure oil the way Thailand buys it.</strong> Thai refineries price against Dubai crude, not Brent, and households pay in baht, so the oil price in the model is Dubai converted at the exchange rate. In ${f.lastCrudeMonth} Brent averaged ${f.brent} dollars and Dubai ${f.dubai}, so this is not a cosmetic choice.</li>
-<li><strong>We run the same model twice and average.</strong> Once with crude oil as the driver, and once with Bangkok pump prices as the driver. The second version matters because pump prices already contain every government decision since 2003: diesel caps, Oil Fund subsidies, excise cuts. A model that learns from pump prices learns how much the government typically cushions a shock. The page shows the middle of the two and the range between them.</li>
+<li><strong>We run the same model twice and average.</strong> Once with crude oil as the driver, and once with Bangkok pump prices as the driver. The second version matters because pump prices already contain every government decision since 2003: diesel caps, Oil Fund subsidies, excise cuts. A model that learns from pump prices learns how much the government typically cushions a shock. In backtesting it is clearly more accurate than the crude version, so it is the headline number on the page; the crude version is shown alongside for comparison.</li>
 <li><strong>We estimate the curve separately for each kind of spending.</strong> Energy, vehicle fuel, electricity and gas, public transport, food, and everything else each get their own curve, and your own budget decides how much each one matters to you. A household without a car gets a very different answer from one that fills up 150 litres a month, and it should.</li>
 </ul>
 

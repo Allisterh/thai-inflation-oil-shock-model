@@ -24,7 +24,7 @@ Government price management is the largest source of error in a crude-only model
 1. **Pump-price model**: the shock is the monthly log change in a Bangkok retail fuel index (60% diesel B7, 40% gasohol 95, from EPPO, since 2003). It already embeds every policy decision and uses today's actual pump prices for the current month.
 2. **Crude model**: the shock is the monthly log change in Dubai crude in baht. It captures crude moves that have not reached the pump yet and is used for what-if scenarios.
 
-The headline household number is the average of the two, and the band shown covers the confidence intervals of both. Each model is also shown on its own.
+The simple page's headline number comes from the pump-price model, which beats both the crude model and their average on every backtest measure (six-month RMSE 0.96 vs 1.14 for the average; direction right in 30 of 36 months vs 22 of 35). The crude model is shown alongside, and the detailed page offers the average and each model on its own.
 
 ## How accurate it has been
 

@@ -26,7 +26,7 @@
       idxFood: "อาหาร", idxElec: "ค่าไฟ ก๊าซ น้ำประปา", idxOther: "สินค้าทั่วไป (เงินเฟ้อพื้นฐาน)",
       nextLeadUp: "ยังไม่จบแค่นี้ อีกไม่กี่เดือนของน่าจะแพงขึ้นอีกประมาณ", nextLeadDown: "ข่าวดีคือ อีกไม่กี่เดือนราคาน่าจะลดลงนิดหน่อย ประมาณ",
       nextWhen: (d) => `นี่คือส่วนที่เพิ่มจากที่คุณจ่ายอยู่วันนี้ และจะหนักที่สุดราวเดือน${d.m}`,
-      nextRange: (d) => `อาจอยู่ระหว่าง ${d.lo} ถึง ${d.hi} บาทต่อเดือน เราคำนวณสองวิธี วิธีหนึ่งจากราคาหน้าปั๊ม อีกวิธีจากราคาน้ำมันดิบ แล้วแสดงค่าตรงกลาง`,
+      nextRange: (d) => `ตัวเลขนี้มาจากแบบจำลองที่ใช้ราคาหน้าปั๊มจริง ซึ่งแม่นที่สุดในการทดสอบของเรา ถ้าคิดจากราคาน้ำมันดิบอย่างเดียวจะได้ ${d.alt} บาท และจากความคลาดเคลื่อนในอดีต ตัวเลขจริงมักห่างจากที่ประมาณไม่เกินราว ${d.err} บาทต่อเดือน`,
       accuracy: (d) => `ส่วนนี้เป็นการประมาณ ใน 3 ปีที่ผ่านมา ตัวเลขล่วงหน้า 6 เดือนของเราคลาดจากของจริงราว ${d.rmse} จุดของอัตราเงินเฟ้อ ถ้าเดาว่าไม่มีอะไรเปลี่ยนจะคลาด ${d.naive} จุด`,
       whatifTitle: "แล้วถ้าน้ำมันดิบเปลี่ยนอีก", up10: "ขึ้นอีก 10%", up20: "ขึ้นอีก 20%", up50: "ขึ้นอีก 50%", down10: "ลดลง 10%",
       whatif: (d) => `ถ้าน้ำมันดิบ${d.dir}จากตอนนี้ ครอบครัวคุณจะจ่าย${d.more}อีกราว ${d.peak} บาทต่อเดือนในช่วงที่หนักที่สุด และ${d.prod}จะ${d.pumpDir}ประมาณลิตรละ ${d.pump} บาท ถ้ารัฐไม่เข้ามาช่วยตรึงราคา`,
@@ -64,7 +64,7 @@
       idxFood: "Food", idxElec: "Electricity, gas and water", idxOther: "General goods",
       nextLeadUp: "On top of that, prices will probably go up by about another", nextLeadDown: "The good news: prices should come down a little, by about",
       nextWhen: (d) => `That is extra on top of what you pay today, and it will be at its worst around ${d.m}.`,
-      nextRange: (d) => `It could be anywhere from ${d.lo} to ${d.hi} baht a month. We worked it out two ways, one from pump prices and one from crude oil prices, and show the middle.`,
+      nextRange: (d) => `This comes from the model that uses real pump prices, the most accurate one in our testing. Working from crude oil alone gives ${d.alt} baht instead. Based on past errors, the real figure usually lands within about ${d.err} baht a month of this.`,
       accuracy: (d) => `This part is an estimate. Over the past 3 years, our 6-month estimates have usually been off by about ${d.rmse} percentage points on the inflation rate. Guessing "nothing will change" would have been off by ${d.naive}.`,
       whatifTitle: "What if oil prices move again?", up10: "Up another 10%", up20: "Up another 20%", up50: "Up another 50%", down10: "Down 10%",
       whatif: (d) => `If oil goes ${d.dir} from here, your family would pay about ${d.peak} baht a month ${d.more} at the worst point, and ${d.prod} would be about ${d.pump} baht a litre ${d.pumpDir}, unless the government steps in to hold prices down.`,
@@ -168,19 +168,21 @@
       { label: t("itemElec"), note: t("noteIdx", { what: t("idxElec"), pct: signed(cpi.electricity_fuel_water_yoy, 1, "%") }), value: now.elec },
       { label: t("itemOther"), note: t("noteIdx", { what: t("idxOther"), pct: signed(cpi.core_yoy, 1, "%") }), value: now.other },
     ]);
-    // ---- still to come (model, combined of pump-price and crude models)
-    const key = D.projections.combined ? "combined" : D.model.primary_shock;
+    // ---- still to come. The pump-price model is the headline estimate: in the rolling backtest it
+    // beats both the crude model and their average on every measure. Crude is shown as the alternative.
+    const key = D.projections.retail_fuel ? "retail_fuel" : D.model.primary_shock;
     const ah = ahead(D.projections[key].observed_mtd);
     const months = Array.from({ length: 24 }, (_, i) => addMonths(c.month, i + 1));
     $("nextLead").textContent = ah.peak >= 0 ? t("nextLeadUp") : t("nextLeadDown");
     const nb = $("nextTotal"); nb.textContent = num(round10(Math.abs(ah.peak))); nb.className = ah.peak >= 0 ? "up" : "down";
     $("nextWhen").textContent = t("nextWhen", { m: mLabel(months[ah.peakH - 1]), total: num(round10(nowTotal + ah.peak)) });
     if (D.projections.retail_fuel) {
-      const a = ahead(D.projections.retail_fuel.observed_mtd).total[ah.peakH - 1], b = ahead(D.projections[D.model.primary_shock].observed_mtd).total[ah.peakH - 1];
-      $("nextRange").textContent = t("nextRange", { lo: num(round10(Math.min(a, b))), hi: num(round10(Math.max(a, b))) });
+      const b = ahead(D.projections[D.model.primary_shock].observed_mtd).total[ah.peakH - 1];
+      const r6 = D.backtests && D.backtests.retail_fuel ? D.backtests.retail_fuel.headline.by_h.find((x) => x.h === 6) : null;
+      $("nextRange").textContent = t("nextRange", { alt: num(round10(b)), err: num(round10(0.01 * total * (r6 ? r6.rmse : 1))) });
     }
     bars($("nextBars"), ITEMS.map(([item, oc, lab]) => ({ label: t(lab), value: ah.rows[item] ? ah.rows[item][ah.peakH - 1] : 0 })));
-    const bt = D.backtests && (D.backtests.combined || D.backtests[D.model.primary_shock]); if (bt) { const r6 = bt.headline.by_h.find((x) => x.h === 6); if (r6) $("nextAccuracy").textContent = t("accuracy", { rmse: num(r6.rmse, 1), naive: num(r6.rmse_no_change, 1) }); }
+    const bt = D.backtests && (D.backtests.retail_fuel || D.backtests[D.model.primary_shock]); if (bt) { const r6 = bt.headline.by_h.find((x) => x.h === 6); if (r6) $("nextAccuracy").textContent = t("accuracy", { rmse: num(r6.rmse, 1), naive: num(r6.rmse_no_change, 1) }); }
     // ---- what if
     chips($("whatifChips"), WHATIF.map(([k, v]) => [t(k), v]), state.whatif, (v) => { state.whatif = v; });
     const sc = scenario(state.whatif);
