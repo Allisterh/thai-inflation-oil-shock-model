@@ -1,0 +1,4 @@
+{
+  "_about": "Comments shown on the front page under 'What people said'. Copy approved comments here from the Netlify dashboard (Site → Forms → feedback). Fields: text (as written), where (optional region or town), when (YYYY-MM-DD), lang ('th' or 'en', decides which language view shows it; omit to show in both). Nothing is published automatically.",
+  "items": []
+}

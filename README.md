@@ -76,6 +76,16 @@ Energy and fuel prices react within a month and fade within a year. Food and cor
 5. **Crude oil prices**: daily Brent, monthly Dubai versus Brent, and Bangkok retail prices since 2015.
 6. **What the model says**: impulse responses per index, the estimation data, method notes and the live source status.
 
+## Visitor counter, feedback and comments
+
+The front page shows how many families have run a calculation and how many said it helped, asks "Did this help you?" and takes an optional comment. All of it runs on Netlify with no extra accounts:
+
+- **Counters**: `netlify/functions/count.mjs` is a Netlify Function served at `/api/count`, storing the counts in Netlify Blobs. Events: `calc` (first input change in a session), `helped_yes`, `helped_no`, `share`, `feedback`. `GET /api/count` returns the current counts as JSON. When the function is absent (local serving) the strip stays hidden.
+- **Feedback form**: a Netlify Form named `feedback` (fields `helped`, `where`, `lang`, `comment`). Submissions appear in the Netlify dashboard under *Site → Forms → feedback*, and Netlify can email each one to you (*Forms → Settings → Form notifications*). The free tier takes 100 submissions a month.
+- **Published comments**: nothing is shown automatically. To publish a comment, copy it into `web/data/testimonials.json` (`text`, optional `where`, `when`, `lang`) and push; the page shows up to six. Keep the original submissions as evidence.
+
+The counters and form only work on the Netlify deployment, not on the local FastAPI server or GitHub Pages.
+
 ## Quick start
 
 ```bash

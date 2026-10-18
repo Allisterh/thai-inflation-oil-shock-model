@@ -29,3 +29,6 @@ Thumbs.db
 
 # Project specific
 *.log
+
+# Node (Netlify function dependency)
+node_modules/

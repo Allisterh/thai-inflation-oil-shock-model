@@ -47,6 +47,11 @@
       whatifNote: (d) => `ทำไมราคาหน้าปั๊มไม่ขึ้นเท่าน้ำมันดิบ ตั้งแต่ปี 2546 เมื่อน้ำมันดิบแพงขึ้น ราคาหน้าปั๊มในไทยมักขึ้นแค่ราว ${d.pt} ของที่น้ำมันดิบขึ้น ภายใน 3 เดือน ที่เหลือกองทุนน้ำมันและการลดภาษีช่วยรับไว้ ${d.regime}`,
       regimeSub: (d) => `ตอนนี้ (${d.date}) กองทุนน้ำมันกำลังช่วยจ่ายค่าดีเซลให้ลิตรละ ${d.levy} บาท ในช่วงแบบนี้ที่ผ่านมา ราคาหน้าปั๊มขยับตามน้ำมันดิบราว ${d.pt}`,
       regimeCol: (d) => `ตอนนี้ (${d.date}) กองทุนน้ำมันเก็บเงินจากดีเซลลิตรละ ${d.levy} บาท ในช่วงแบบนี้ที่ผ่านมา ราคาหน้าปั๊มขยับตามน้ำมันดิบราว ${d.pt}`,
+      fbTitle: "ตัวเลขนี้ช่วยคุณได้ไหม", fbYes: "ช่วยได้", fbSome: "ช่วยได้บ้าง", fbNo: "ไม่ช่วย",
+      fbPrompt: "อยากบอกอะไรเพิ่มไหม เช่น มันเปลี่ยนวิธีวางแผนค่าใช้จ่ายของคุณอย่างไร หรืออะไรที่ยังงงอยู่ (ไม่บังคับ)",
+      fbSend: "ส่งความเห็น", fbPrivacy: "ไม่เก็บชื่อหรืออีเมล ความเห็นอาจถูกนำมาแสดงบนหน้านี้", fbThanks: "ขอบคุณมาก ความเห็นของคุณช่วยให้เราทำเว็บนี้ให้ดีขึ้น", fbFail: "ส่งไม่สำเร็จ ลองใหม่อีกครั้ง",
+      fbSaid: "คนอื่นบอกว่า",
+      counters: (d) => `ครอบครัวที่คำนวณแล้ว <b>${d.calc}</b> ครอบครัว${d.helped ? ` และ <b>${d.helped}</b> คนบอกว่าช่วยได้` : ""}`,
       prod: { gasohol95: "แก๊สโซฮอล์ 95", gasohol91: "แก๊สโซฮอล์ 91", gasohol_e20: "แก๊สโซฮอล์ E20", diesel_b7: "ดีเซล" },
     },
     en: {
@@ -91,6 +96,11 @@
       whatifNote: (d) => `Why pump prices do not rise as much as crude: since 2003, when crude oil has gone up, Thai pump prices have usually risen by only about ${d.pt} of that within three months. The Oil Fund and tax cuts absorb the rest. ${d.regime}`,
       regimeSub: (d) => `Right now (${d.date}) the Oil Fund is paying ${d.levy} baht of every litre of diesel for you. In periods like this, pump prices followed about ${d.pt} of crude moves.`,
       regimeCol: (d) => `Right now (${d.date}) the Oil Fund is collecting ${d.levy} baht on every litre of diesel. In periods like this, pump prices followed about ${d.pt} of crude moves.`,
+      fbTitle: "Did this help you?", fbYes: "Yes, it helped", fbSome: "A little", fbNo: "No",
+      fbPrompt: "Anything you want to add? For example how it changed the way you plan your spending, or what was still confusing. (Optional)",
+      fbSend: "Send", fbPrivacy: "No name or email is collected. Comments may be shown on this page.", fbThanks: "Thank you. Your comment helps us make this better.", fbFail: "Could not send. Please try again.",
+      fbSaid: "What people said",
+      counters: (d) => `<b>${d.calc}</b> families have run the numbers${d.helped ? `, and <b>${d.helped}</b> said it helped` : ""}`,
       prod: { gasohol95: "Gasohol 95", gasohol91: "Gasohol 91", gasohol_e20: "Gasohol E20", diesel_b7: "Diesel" },
     },
   };
@@ -173,6 +183,36 @@
   }
   const whereLabel = () => { const l = t(WHERE.find(([k]) => k === state.where)[1]); return lang === "en" ? l.toLowerCase().replace("whole country", "whole country").replace("low-income household", "low-income household group") : l; };
 
+  // ---- shared counters (Netlify function at /api/count, backed by Netlify Blobs). Silent when absent,
+  // e.g. when the page is served locally.
+  const COUNT_URL = "/api/count";
+  let counts = null; let counted = false;
+  const bump = (event) => fetch(COUNT_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ event }) })
+    .then((r) => (r.ok ? r.json() : null)).then((c) => { if (c) { counts = c; renderCounters(); } }).catch(() => {});
+  const countOnce = () => { if (counted) return; counted = true; try { if (sessionStorage.getItem("counted")) return; sessionStorage.setItem("counted", "1"); } catch (e) {} bump("calc"); };
+  function renderCounters() {
+    const el = $("counters"); if (!counts || !counts.calc) { el.hidden = true; return; }
+    el.innerHTML = t("counters", { calc: num(counts.calc), helped: counts.helped_yes ? num(counts.helped_yes) : 0 }); el.hidden = false;
+  }
+  // ---- feedback form (Netlify Forms). The yes/some/no answer is sent at once; a comment can follow.
+  let fbAnswer = null, fbSent = false;
+  function postForm(fields) {
+    const body = new URLSearchParams(fields).toString();
+    return fetch("/", { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body }).then((r) => r.ok);
+  }
+  function renderFeedback() {
+    chips($("fbChips"), [["fbYes", "yes"], ["fbSome", "some"], ["fbNo", "no"]].map(([k, v]) => [t(k), v]), fbAnswer, (v) => {
+      fbAnswer = v; $("fbHelped").value = v; $("fbWhere").value = state.where; $("fbLang").value = lang; $("fbMore").hidden = false; $("fbDone").hidden = true;
+      if (!fbSent) { fbSent = true; postForm({ "form-name": "feedback", helped: v, where: state.where, lang, comment: "" }).catch(() => {}); bump(v === "no" ? "helped_no" : "helped_yes"); }
+    });
+  }
+  function renderTestimonials(items) {
+    const list = (items || []).filter((q) => q && q.text && (!q.lang || q.lang === lang)).slice(0, 6);
+    $("testimonials").hidden = list.length === 0;
+    $("quoteList").innerHTML = list.map((q) => `<blockquote class="quote">${q.text.replace(/[<>&]/g, (ch) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[ch]))}<small>${[q.where, q.when].filter(Boolean).join(" · ")}</small></blockquote>`).join("");
+  }
+  let testimonials = [];
+
   function render() {
     document.documentElement.lang = lang; document.title = t("brand");
     document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
@@ -254,17 +294,29 @@
     const shareText = t("shareText", { now: num(round10(nowTotal)), next: num(round10(ah.peak)) });
     const url = location.href.split("#")[0];
     $("lineBtn").href = "https://social-plugins.line.me/lineit/share?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(shareText);
-    $("copyBtn").onclick = () => { navigator.clipboard && navigator.clipboard.writeText(shareText + url).then(() => { $("copyDone").textContent = t("copied"); setTimeout(() => { $("copyDone").textContent = ""; }, 2000); }); };
+    $("copyBtn").onclick = () => { bump("share"); navigator.clipboard && navigator.clipboard.writeText(shareText + url).then(() => { $("copyDone").textContent = t("copied"); setTimeout(() => { $("copyDone").textContent = ""; }, 2000); }); };
     $("footSources").textContent = t("foot", (D.generated_at || "").slice(0, 10));
+    renderCounters(); renderFeedback(); renderTestimonials(testimonials);
   }
 
   $("langToggle").addEventListener("click", () => { lang = lang === "th" ? "en" : "th"; try { localStorage.setItem("lang", lang); } catch (e) {} render(); });
+  ["litres", "fuelType", "food", "elec", "other"].forEach((id) => $(id).addEventListener("input", countOnce, { once: true }));
+  document.querySelector(".panel").addEventListener("click", (e) => { if (e.target.closest(".chip")) countOnce(); });
+  $("lineBtn").addEventListener("click", () => bump("share"));
+  $("fbForm").addEventListener("submit", (e) => {
+    e.preventDefault(); const text = $("fbText").value.trim(); const done = $("fbDone");
+    postForm({ "form-name": "feedback", helped: fbAnswer || "", where: state.where, lang, comment: text })
+      .then((ok) => { done.textContent = ok ? t("fbThanks") : t("fbFail"); done.hidden = false; if (ok) { $("fbText").value = ""; $("fbMore").hidden = true; bump("feedback"); } })
+      .catch(() => { done.textContent = t("fbFail"); done.hidden = false; });
+  });
   $("litres").addEventListener("input", (e) => { state.litres = +e.target.value || 0; render(); });
   $("fuelType").addEventListener("change", (e) => { state.product = e.target.value; render(); });
   $("food").addEventListener("input", (e) => { state.food = +e.target.value || 0; render(); });
   $("elec").addEventListener("input", (e) => { state.elec = +e.target.value || 0; render(); });
   $("other").addEventListener("input", (e) => { state.other = +e.target.value || 0; render(); });
   render();
+  fetch(COUNT_URL, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((c) => { if (c && typeof c === "object") { counts = c; renderCounters(); } }).catch(() => {});
+  fetch("data/testimonials.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && Array.isArray(j.items)) { testimonials = j.items; if (D) renderTestimonials(testimonials); } }).catch(() => {});
   fetch("data/latest.json", { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then((d) => { D = d; render(); })
     .catch((err) => { console.error(err); const p = document.createElement("p"); p.className = "muted"; p.textContent = t("loadError"); document.querySelector("main").prepend(p); });

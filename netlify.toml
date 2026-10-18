@@ -1,8 +1,15 @@
 # Netlify: connect this repository (Site settings → Build & deploy → Link repository).
 # No build step: the site is the static `web/` folder, refreshed by the GitHub Action.
+# netlify/functions/count.mjs is a small function (served at /api/count) that keeps the shared
+# "families who calculated / said it helped" counters in Netlify Blobs. The feedback form on the
+# front page uses Netlify Forms; submissions appear under Site → Forms in the Netlify dashboard.
 [build]
   publish = "web"
   command = ""
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 [[headers]]
   for = "/data/*"

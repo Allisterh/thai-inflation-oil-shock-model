@@ -101,6 +101,32 @@
     <span class="hint" id="copyDone"></span>
   </section>
 
+  <section class="feedback" aria-labelledby="fbTitle">
+    <p class="counters" id="counters" hidden></p>
+    <h2 id="fbTitle" data-i18n="fbTitle">ตัวเลขนี้ช่วยคุณได้ไหม</h2>
+    <form id="fbForm" name="feedback" method="POST" data-netlify="true" netlify-honeypot="website" action="/">
+      <input type="hidden" name="form-name" value="feedback">
+      <input type="hidden" name="helped" id="fbHelped" value="">
+      <input type="hidden" name="where" id="fbWhere" value="">
+      <input type="hidden" name="lang" id="fbLang" value="">
+      <p class="hp"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></p>
+      <div class="seg" id="fbChips"></div>
+      <div class="fb-more" id="fbMore" hidden>
+        <label class="fb-label" for="fbText" data-i18n="fbPrompt">อยากบอกอะไรเพิ่มไหม เช่น มันเปลี่ยนวิธีวางแผนค่าใช้จ่ายของคุณอย่างไร (ไม่บังคับ)</label>
+        <textarea id="fbText" name="comment" rows="3" maxlength="600"></textarea>
+        <div class="fb-row">
+          <button class="chip chip-solid" id="fbSend" type="submit" data-i18n="fbSend">ส่งความเห็น</button>
+          <span class="hint" data-i18n="fbPrivacy">ไม่เก็บชื่อหรืออีเมล ความเห็นอาจถูกนำมาแสดงบนหน้านี้</span>
+        </div>
+      </div>
+      <p class="hint" id="fbDone" hidden></p>
+    </form>
+    <div id="testimonials" hidden>
+      <h3 data-i18n="fbSaid">คนอื่นบอกว่า</h3>
+      <div class="quotes" id="quoteList"></div>
+    </div>
+  </section>
+
   <section class="whatif">
     <h2 data-i18n="whatifTitle">แล้วถ้าน้ำมันดิบเปลี่ยนอีก</h2>
     <div class="seg" id="whatifChips"></div>
