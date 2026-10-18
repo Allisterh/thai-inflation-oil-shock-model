@@ -1,9 +1,9 @@
 {
-  "synced_at": "2026-10-18T13:25:42+00:00",
+  "synced_at": "2026-10-18T13:27:27+00:00",
   "tpso_cpi": {
     "name": "tpso_cpi",
     "source": "TPSO Index API (cpig/filter)",
-    "fetched_at": "2026-10-18T13:25:59+00:00",
+    "fetched_at": "2026-10-18T13:27:42+00:00",
     "first_obs": "1976-01",
     "last_obs": "2026-09",
     "n_obs": 609,
@@ -15,7 +15,7 @@
   "crude_monthly": {
     "name": "crude_monthly",
     "source": "World Bank Pink Sheet",
-    "fetched_at": "2026-10-18T13:26:00+00:00",
+    "fetched_at": "2026-10-18T13:27:43+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-09",
     "n_obs": 801,
@@ -26,7 +26,7 @@
   "usdthb_monthly_imf": {
     "name": "usdthb_monthly_imf",
     "source": "IMF IFS via DBnomics",
-    "fetched_at": "2026-10-18T13:26:01+00:00",
+    "fetched_at": "2026-10-18T13:27:44+00:00",
     "first_obs": "1957-01",
     "last_obs": "2025-07",
     "n_obs": 823,
@@ -37,7 +37,7 @@
   "brent_daily": {
     "name": "brent_daily",
     "source": "EIA Brent spot (RBRTEd)",
-    "fetched_at": "2026-10-18T13:26:01+00:00",
+    "fetched_at": "2026-10-18T13:27:45+00:00",
     "first_obs": "1987-05-20",
     "last_obs": "2026-10-14",
     "n_obs": 9108,
@@ -48,7 +48,7 @@
   "usdthb_daily": {
     "name": "usdthb_daily",
     "source": "ECB reference rate via Frankfurter",
-    "fetched_at": "2026-10-18T13:26:01+00:00",
+    "fetched_at": "2026-10-18T13:27:46+00:00",
     "first_obs": "1999-12-30",
     "last_obs": "2026-10-16",
     "n_obs": 6858,
@@ -59,7 +59,7 @@
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",
     "source": "EPPO oil-prices JSON",
-    "fetched_at": "2026-10-18T13:26:02+00:00",
+    "fetched_at": "2026-10-18T13:27:46+00:00",
     "first_obs": "2026-10-09",
     "last_obs": "2026-10-09",
     "n_obs": 1,
@@ -70,7 +70,7 @@
   "eppo_price_structure": {
     "name": "eppo_price_structure",
     "source": "EPPO oil-structure-prices JSON",
-    "fetched_at": "2026-10-18T13:26:02+00:00",
+    "fetched_at": "2026-10-18T13:27:46+00:00",
     "first_obs": null,
     "last_obs": "2026-10-15",
     "n_obs": 1,
@@ -81,7 +81,7 @@
   "eppo_retail_monthly": {
     "name": "eppo_retail_monthly",
     "source": "EPPO petroleum price statistics, Table 9",
-    "fetched_at": "2026-10-18T13:26:02+00:00",
+    "fetched_at": "2026-10-18T13:27:48+00:00",
     "first_obs": "2003-01",
     "last_obs": "2026-08",
     "n_obs": 284,
