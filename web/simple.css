@@ -91,3 +91,4 @@ body.simple h2 { font-size: 1.15rem; margin: 0 0 .6em; font-weight: 600; }
   .seg .chip:nth-last-child(-n+2) { border-bottom: 0; }
   .seg .chip:last-child { border-right: 0; }
 }
+.links-row { display: flex; gap: 22px; flex-wrap: wrap; }
