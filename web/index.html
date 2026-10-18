@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>น้ำมันกับค่าครองชีพ</title>
+<meta name="description" content="ราคาน้ำมันวันนี้จะทำให้เงินเฟ้อไทยและค่าใช้จ่ายครัวเรือนเปลี่ยนไปเท่าไร ประมาณจากแบบจำลอง local projections ที่อัปเดตทุกวัน">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231d2624%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-weight=%27700%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5c543%27%3E฿%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="#"><span data-i18n="brand">น้ำมันกับค่าครองชีพ</span></a>
+    <div class="top-actions">
+      <button class="lang" id="langToggle" type="button" aria-label="Switch language">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <h1 data-i18n="h1">ราคาน้ำมันโลกวันนี้ จะมาถึงกระเป๋าเงินคุณเมื่อไร และเท่าไร</h1>
+    <p class="lede" data-i18n="lede">หน้านี้ดึงราคาน้ำมันดิบเบรนท์ทุกวัน แล้วใช้แบบจำลองที่ประมาณจากข้อมูลไทยปี 2017 ถึงปัจจุบัน บอกว่าการเปลี่ยนแปลงของราคาน้ำมันจะดันเงินเฟ้อไทยขึ้นกี่จุด ในอีกกี่เดือน และหมายถึงเงินกี่บาทต่อเดือนสำหรับครอบครัวของคุณ</p>
+  </section>
+
+  <!-- The price board: the one loud element on the page -->
+  <section class="board" aria-labelledby="boardTitle">
+    <div class="board-head">
+      <h2 id="boardTitle" data-i18n="boardTitle">กระดานราคาวันนี้</h2>
+      <span class="board-date" id="boardDate"></span>
+    </div>
+    <div class="tiles">
+      <div class="tile">
+        <span class="tile-label" data-i18n="tileBrent">น้ำมันดิบเบรนท์</span>
+        <span class="tile-value" id="tBrent">–</span>
+        <span class="tile-unit" data-i18n="unitUsdBbl">ดอลลาร์ต่อบาร์เรล</span>
+      </div>
+      <div class="tile">
+        <span class="tile-label" data-i18n="tileCrudeThb">ต้นทุนน้ำมันดิบ</span>
+        <span class="tile-value" id="tCrudeThb">–</span>
+        <span class="tile-unit" data-i18n="unitThbL">บาทต่อลิตร</span>
+      </div>
+      <div class="tile">
+        <span class="tile-label" data-i18n="tileFx">ค่าเงิน</span>
+        <span class="tile-value" id="tFx">–</span>
+        <span class="tile-unit" data-i18n="unitThbUsd">บาทต่อดอลลาร์</span>
+      </div>
+      <div class="tile tile-shock">
+        <span class="tile-label" data-i18n="tileShock">เทียบกับไตรมาสก่อน</span>
+        <span class="tile-value" id="tShock">–</span>
+        <span class="tile-unit" id="tShockUnit"></span>
+      </div>
+    </div>
+    <p class="board-note" id="boardNote"></p>
+  </section>
+
+  <!-- Calculator -->
+  <section class="calc" aria-labelledby="calcTitle">
+    <h2 id="calcTitle" data-i18n="calcTitle">สำหรับครอบครัวของคุณ</h2>
+    <div class="calc-grid">
+      <div class="controls">
+        <label class="field">
+          <span data-i18n="spendLabel">ค่าใช้จ่ายครัวเรือนต่อเดือน (บาท)</span>
+          <input id="spend" type="number" inputmode="numeric" min="0" step="500" value="24000">
+        </label>
+        <fieldset class="field">
+          <legend data-i18n="basisLegend">ใช้ราคาน้ำมันแบบไหน</legend>
+          <label class="radio"><input type="radio" name="basis" value="qtd" checked><span data-i18n="basisQtd">ราคาเฉลี่ยไตรมาสนี้จนถึงวันนี้</span></label>
+          <label class="radio"><input type="radio" name="basis" value="spot"><span data-i18n="basisSpot">ถ้าราคาวันนี้คงอยู่ทั้งไตรมาส</span></label>
+          <label class="radio"><input type="radio" name="basis" value="custom"><span data-i18n="basisCustom">กำหนดเอง</span></label>
+          <div class="slider-row" id="customRow" hidden>
+            <input id="shockSlider" type="range" min="-40" max="80" step="1" value="20" aria-label="Oil price change in percent">
+            <output id="shockOut" for="shockSlider">+20%</output>
+          </div>
+        </fieldset>
+        <details class="advanced">
+          <summary data-i18n="advanced">ตัวเลือกเพิ่มเติม</summary>
+          <label class="radio"><input type="radio" name="cur" value="usd" checked><span data-i18n="curUsd">วัดช็อกน้ำมันเป็นดอลลาร์ (ตามแบบจำลองหลัก)</span></label>
+          <label class="radio"><input type="radio" name="cur" value="thb"><span data-i18n="curThb">วัดช็อกน้ำมันเป็นบาท (รวมผลค่าเงิน)</span></label>
+        </details>
+      </div>
+
+      <div class="answers">
+        <div class="answer">
+          <span class="answer-label" data-i18n="ansPeak">ช่วงที่หนักที่สุด คุณจะจ่ายเพิ่มประมาณ</span>
+          <span class="answer-value"><span id="aPeak">–</span> <span class="answer-unit" data-i18n="perMonth">บาทต่อเดือน</span></span>
+          <span class="answer-sub" id="aPeakWhen"></span>
+        </div>
+        <div class="answer">
+          <span class="answer-label" data-i18n="ansYear">รวม 12 เดือนข้างหน้า</span>
+          <span class="answer-value"><span id="aYear">–</span> <span class="answer-unit" data-i18n="baht">บาท</span></span>
+          <span class="answer-sub" id="aYearRange"></span>
+        </div>
+        <div class="answer">
+          <span class="answer-label" data-i18n="ansInfl">เงินเฟ้อจะสูงขึ้นกว่าที่ควรจะเป็น</span>
+          <span class="answer-value"><span id="aInfl">–</span> <span class="answer-unit" data-i18n="pp">จุดเปอร์เซ็นต์</span></span>
+          <span class="answer-sub" id="aInflWhen"></span>
+        </div>
+      </div>
+    </div>
+
+    <figure class="chart-block">
+      <figcaption>
+        <span class="chart-title" data-i18n="pathTitle">ผลต่อเงินเฟ้อไทยในอีก 8 ไตรมาสข้างหน้า (จุดเปอร์เซ็นต์ของอัตราเงินเฟ้อเทียบปีก่อน)</span>
+        <span class="chart-sub" id="pathSub"></span>
+      </figcaption>
+      <div class="chart" id="pathChart" role="img"></div>
+      <details class="table-view"><summary data-i18n="tableView">ดูเป็นตาราง</summary><div id="pathTable"></div></details>
+    </figure>
+  </section>
+
+  <!-- Pump -->
+  <section class="pump" aria-labelledby="pumpTitle">
+    <h2 id="pumpTitle" data-i18n="pumpTitle">ที่ปั๊มน้ำมัน</h2>
+    <p class="muted" data-i18n="pumpIntro">ภาษี เงินกองทุนน้ำมัน และค่าการตลาดคิดเป็นบาทต่อลิตรค่อนข้างคงที่ ดังนั้นราคาหน้าปั๊มมักขยับตามต้นทุนน้ำมันดิบต่อลิตร ใส่ราคาที่คุณเห็นวันนี้ แล้วดูว่าการเปลี่ยนแปลงที่เลือกไว้ข้างบนจะหมายถึงกี่บาทต่อลิตร</p>
+    <div class="pump-grid">
+      <label class="field"><span data-i18n="pumpPrice">ราคาหน้าปั๊มวันนี้ (บาทต่อลิตร)</span><input id="pumpPrice" type="number" step="0.1" min="0" value="36"></label>
+      <label class="field"><span data-i18n="pumpPass">สัดส่วนที่ส่งผ่านถึงหน้าปั๊ม</span>
+        <select id="pumpPass">
+          <option value="1" data-i18n="passGasohol">แก๊สโซฮอล์ ส่งผ่านเต็มที่ (100%)</option>
+          <option value="0.5" data-i18n="passDiesel">ดีเซล กองทุนน้ำมันช่วยพยุงครึ่งหนึ่ง (50%)</option>
+          <option value="0.25" data-i18n="passCapped">ตรึงราคาเกือบทั้งหมด (25%)</option>
+        </select>
+      </label>
+      <div class="answer pump-answer">
+        <span class="answer-label" data-i18n="pumpResult">ราคาหน้าปั๊มโดยประมาณ</span>
+        <span class="answer-value"><span id="pumpNew">–</span> <span class="answer-unit" data-i18n="thbL">บาทต่อลิตร</span></span>
+        <span class="answer-sub" id="pumpDelta"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Oil history -->
+  <section class="history" aria-labelledby="oilTitle">
+    <h2 id="oilTitle" data-i18n="oilTitle">ราคาน้ำมันดิบเบรนท์</h2>
+    <div class="deltas" id="brentDeltas"></div>
+    <figure class="chart-block">
+      <figcaption><span class="chart-title" data-i18n="brentChartTitle">ราคาปิดรายวัน ดอลลาร์ต่อบาร์เรล</span></figcaption>
+      <div class="chart" id="brentChart" role="img"></div>
+    </figure>
+  </section>
+
+  <!-- Model -->
+  <section class="model" aria-labelledby="modelTitle">
+    <h2 id="modelTitle" data-i18n="modelTitle">แบบจำลองบอกอะไร</h2>
+    <p class="muted" id="modelSummary"></p>
+    <figure class="chart-block">
+      <figcaption><span class="chart-title" data-i18n="irfTitle">ถ้าน้ำมันแพงขึ้น 10% เงินเฟ้อเปลี่ยนกี่จุดในแต่ละไตรมาสถัดไป</span><span class="chart-sub" data-i18n="irfSub">เส้นคือค่าประมาณ แถบคือช่วงความเชื่อมั่น 95%</span></figcaption>
+      <div class="chart" id="irfChart" role="img"></div>
+      <details class="table-view"><summary data-i18n="tableView">ดูเป็นตาราง</summary><div id="irfTable"></div></details>
+    </figure>
+    <figure class="chart-block">
+      <figcaption><span class="chart-title" data-i18n="histTitle">ข้อมูลที่ใช้ประมาณ: เงินเฟ้อไทยและการเปลี่ยนแปลงราคาน้ำมันรายไตรมาส</span></figcaption>
+      <div class="chart" id="cpiChart" role="img"></div>
+      <div class="chart" id="shockChart" role="img"></div>
+    </figure>
+  </section>
+
+  <section class="about" aria-labelledby="aboutTitle">
+    <h2 id="aboutTitle" data-i18n="aboutTitle">วิธีคิดและข้อจำกัด</h2>
+    <div class="about-text" data-i18n-html="aboutBody"></div>
+    <h3 data-i18n="sourcesTitle">แหล่งข้อมูลและสถานะการอัปเดต</h3>
+    <div id="sources"></div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <span data-i18n="foot">แบบจำลองโดย Thai Leetrakul เผยแพร่ภายใต้สัญญาอนุญาต MIT ตัวเลขทั้งหมดเป็นการประมาณเชิงสถิติ ไม่ใช่คำพยากรณ์</span>
+  <a href="https://github.com/thaileetrakul27/thai-inflation-oil-shock-model">GitHub</a>
+</footer>
+
+<div class="tooltip" id="tooltip" role="status" aria-live="polite" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>
