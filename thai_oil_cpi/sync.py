@@ -360,7 +360,7 @@ def build_dataset(status: dict | None = None) -> Dataset:
     df["shock_dubai_usd"] = 100 * np.log(df["dubai_usd"]).diff()
     df["shock_brent_usd"] = 100 * np.log(df["brent_usd"]).diff()
     if retail_m is not None:
-        for col in ("gasohol95", "gasohol91", "diesel_b7", "ulg95"):
+        for col in ("gasohol95", "gasohol91", "diesel_b7", "ulg95", "gasohol_e20"):
             if col in retail_m:
                 df[f"retail_{col}"] = retail_m[col]
         # Retail road-fuel price index: diesel B7 and gasoline (gasohol 95, ULG95 before gasohol existed),

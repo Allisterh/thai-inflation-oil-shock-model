@@ -11,7 +11,7 @@ import pandas as pd
 from . import config as C
 from .backtest import rolling_backtest
 from .model import estimate_all, monthly_spec
-from .projection import HOUSEHOLD_CATEGORIES, observed_shock_path, shock_history
+from .projection import HOUSEHOLD_CATEGORIES, level_ahead_path, observed_shock_path, shock_history
 from .sync import Dataset, build_dataset, sync_all
 
 
@@ -104,9 +104,21 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
         retail["prices"] = {k: (None if pd.isna(v) else float(v)) for k, v in last.items()}
     if ds.price_structure:
         retail["structure"] = ds.price_structure
-    hist_cols = [c for c in ("retail_gasohol95", "retail_diesel_b7", "retail_ulg95", "retail_gasohol91") if c in m]
+    hist_cols = [c for c in ("retail_gasohol95", "retail_diesel_b7", "retail_ulg95", "retail_gasohol91", "retail_gasohol_e20") if c in m]
     retail["history"] = [{"month": str(i), **{c.replace("retail_", ""): (None if pd.isna(r[c]) else float(r[c])) for c in hist_cols}}
                          for i, r in m[hist_cols].dropna(how="all").iterrows()] if hist_cols else []
+    # What a litre cost a year ago and three months ago (monthly averages), per product, for the "already happened" view.
+    this_month = pd.Timestamp.today().to_period("M")
+    comp = {}
+    for col in hist_cols:
+        prod = col.replace("retail_", "")
+        ser = m[col].dropna()
+        def _at(target):
+            sub = ser[ser.index <= target]
+            return (str(sub.index[-1]), float(sub.iloc[-1])) if len(sub) else (None, None)
+        y_m, y_v = _at(this_month - 12); q_m, q_v = _at(this_month - 3)
+        comp[prod] = {"year_ago_month": y_m, "year_ago": y_v, "three_months_ago_month": q_m, "three_months_ago": q_v}
+    retail["compare"] = comp
 
     # IRFs and observed-shock projections
     irf_payload, proj = {}, {}
@@ -117,10 +129,12 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
         proj[key] = {}
         for mode in ("mtd", "spot"):
             hist = shock_history(m, nc, C.SHOCKS[key], current_mode=mode)
-            paths = {}
+            paths, now_pp, ahead = {}, {}, {}
             for oc, irf in irfs[key].items():
                 paths[oc] = [{k: v for k, v in r.items() if k != "contributions"} for r in observed_shock_path(irf, hist)]
-            proj[key][f"observed_{mode}"] = {"shocks": hist, "paths": paths}
+                now_pp[oc] = observed_shock_path(irf, hist[:-1])[0]["impact_pp"] if len(hist) > 1 else 0.0
+                ahead[oc] = [r["level_pct"] for r in level_ahead_path(irf, hist)]
+            proj[key][f"observed_{mode}"] = {"shocks": hist, "paths": paths, "now_pp": now_pp, "level_ahead_pct": ahead}
 
     # Combined estimate: average of the pump-price model and the crude model, band = envelope of both.
     a, b = C.COMBINED_SHOCKS
@@ -142,7 +156,11 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
                 paths[oc] = [{"h": x["h"], "impact_pp": (x["impact_pp"] + y["impact_pp"]) / 2,
                               "lower_pp": min(x["lower_pp"], y["lower_pp"]), "upper_pp": max(x["upper_pp"], y["upper_pp"]),
                               "retail_pp": x["impact_pp"], "crude_pp": y["impact_pp"]} for x, y in zip(pa[oc], pb[oc])]
-            proj["combined"][f"observed_{mode}"] = {"shocks": {a: proj[a][f"observed_{mode}"]["shocks"], b: proj[b][f"observed_{mode}"]["shocks"]}, "paths": paths}
+            na, nb = proj[a][f"observed_{mode}"]["now_pp"], proj[b][f"observed_{mode}"]["now_pp"]
+            la, lb = proj[a][f"observed_{mode}"]["level_ahead_pct"], proj[b][f"observed_{mode}"]["level_ahead_pct"]
+            proj["combined"][f"observed_{mode}"] = {"shocks": {a: proj[a][f"observed_{mode}"]["shocks"], b: proj[b][f"observed_{mode}"]["shocks"]}, "paths": paths,
+                                                    "now_pp": {oc: (na[oc] + nb[oc]) / 2 for oc in paths if oc in na and oc in nb},
+                                                    "level_ahead_pct": {oc: [(x + y) / 2 for x, y in zip(la[oc], lb[oc])] for oc in paths if oc in la and oc in lb}}
 
     # Rolling pseudo-out-of-sample backtest (headline and energy) for each model and the combination.
     backtests = {}

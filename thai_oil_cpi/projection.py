@@ -139,3 +139,34 @@ def pump_price_change(crude_from_thb_bbl: float, crude_to_thb_bbl: float, pass_t
             "crude_to_thb_per_litre": crude_to_thb_bbl / LITRES_PER_BARREL,
             "delta_crude_thb_per_litre": d_crude, "delta_ex_refinery_thb_per_litre": d_exref,
             "delta_pump_thb_per_litre": d_pump, "pass_through": pass_through, "product_factor": product_factor}
+
+
+def level_irf(irf: pd.DataFrame) -> dict[int, float]:
+    """Recover the price-LEVEL response ψ_h from the year-on-year response β_h.
+
+    y_t = 100·(log P_t − log P_{t−12}), so a shock's effect on y at horizon h is ψ_h − ψ_{h−12}
+    (with ψ = 0 before the shock). Hence ψ_h = β_h for h ≤ 12 and ψ_h = β_h + ψ_{h−12} after.
+    """
+    beta = {int(r.h): float(r.beta) for r in irf.itertuples()}
+    psi: dict[int, float] = {0: 0.0}
+    for h in sorted(beta):
+        if math.isnan(beta[h]):
+            continue
+        psi[h] = beta[h] + (psi.get(h - 12, 0.0) if h > 12 else 0.0)
+    return psi
+
+
+def level_ahead_path(irf: pd.DataFrame, shocks: list[tuple[str, float]], horizons_ahead: int = 24) -> list[dict]:
+    """Further change in the price level from now to month t+j (percent) caused by shocks already
+    observed: Σ_k [ψ_{j+k} − ψ_k] · shock_{t−k}. This is what is still in the pipeline."""
+    psi = level_irf(irf)
+    hmax = max(psi)
+    shocks = [(lab, float(v)) for lab, v in shocks if v is not None and not math.isnan(float(v))]
+    out = []
+    for j in range(1, horizons_ahead + 1):
+        total = 0.0
+        for k, (lab, s) in enumerate(reversed(shocks)):
+            later = psi.get(j + k, psi[hmax] if j + k > hmax else 0.0)
+            total += (later - psi.get(k, 0.0)) * s
+        out.append({"h": j, "level_pct": total})
+    return out
