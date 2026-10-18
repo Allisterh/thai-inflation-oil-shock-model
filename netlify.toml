@@ -1,0 +1,10 @@
+# Netlify: connect this repository (Site settings → Build & deploy → Link repository).
+# No build step: the site is the static `web/` folder, refreshed by the GitHub Action.
+[build]
+  publish = "web"
+  command = ""
+
+[[headers]]
+  for = "/data/*"
+  [headers.values]
+    Cache-Control = "public, max-age=300"

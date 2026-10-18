@@ -105,3 +105,59 @@ For example, if β_1 = 0.072, then a 10% oil price shock implies:
 - Jordà, Ò. (2005). Estimation and inference of impulse responses by local projections. *American Economic Review*, 95(1), 161–182.
 
 - Newey, W. K., & West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix. *Econometrica*, 55(3), 703–708.
+
+## Version 2: monthly model on official Thai data
+
+The quarterly specification above is the original exploration and is preserved in the notebook. The live pipeline now estimates a monthly version on official sources.
+
+### Data
+
+| Series | Source | Notes |
+|---|---|---|
+| CPI, all categories, with weights | TPSO Index API (`index.tpso.go.th/api/cpig/filter`, documented at tpso.go.th/indexAPI_Manual) | base 2566 = 2023, chained back to 1976; sub-indices for energy, vehicles and fuel, electricity/fuel/water, public transport, food, raw food, core |
+| Dubai, Brent, WTI monthly | World Bank Pink Sheet (`CMO-Historical-Data-Monthly.xlsx`, URL discovered from the commodity-markets page) | IMF PCPS via DBnomics as fallback |
+| Brent spot daily | EIA `RBRTEd.xls` | ICE futures (Yahoo `BZ=F`) as fallback; spot is used because the Pink Sheet's Brent and Dubai are spot assessments |
+| USD/THB | IMF IFS `ENDA_XDC_USD_RATE` via DBnomics (monthly history), ECB reference rates via Frankfurter (daily) | overlap agrees within 0.25% |
+| Pump prices and price structure | EPPO `wp-json/oil-api/v1/oil-prices`, `oil-structure-prices` | daily snapshots accumulate in the cache |
+| Retail history | EPPO Table 9 (`P09.xls`) | monthly weighted averages since 2003 |
+
+### Shock and outcomes
+
+```
+shock_t = 100 × [ln(Dubai_t × FX_t) − ln(Dubai_{t−1} × FX_{t−1})]       (monthly averages)
+y_t     = 100 × (CPI_t / CPI_{t−12} − 1)                                 for each index
+```
+
+### Specification
+
+For each outcome and horizon h = 1 … 24 months:
+
+```
+y_{t+h} = α_h + β_h shock_t + Σ_{k=1}^{12} γ_k y_{t−k} + Σ_{k=1}^{12} δ_k shock_{t−k} + ε_{t+h}
+```
+
+with Newey–West standard errors, maxlags = h + 1, on the sample from January 2000 (configurable). With roughly 320 observations the bands are far tighter than in the 31-quarter version.
+
+### Nowcasting the current month
+
+Dubai for months after the last Pink Sheet release is estimated as the monthly average of daily Brent spot times the Dubai/Brent ratio of the latest published month, converted at the monthly average of daily USD/THB. Two conventions are shown: the month-to-date average, and today's price held for the rest of the month.
+
+### From impulse responses to household baht
+
+The oil-driven contribution to each index j months ahead sums the last 24 monthly shocks (including the nowcast) along the impulse response: Δy_{t+j} = Σ_k β_{j+k} shock_{t−k}. The household's extra spending per month in category c is spend × share_c × Δy_{c,t+j} / 100, with shares defaulting to the CPI weights (vehicles and fuel 15.9%, electricity/fuel/water 5.2%, public transport 1.6%, food 39.5%, everything else via core inflation). The 12-month total sums the first twelve months.
+
+### Pump prices
+
+EPPO's price build-up gives, per product, the ex-refinery price, excise, municipal tax, Oil Fund and conservation fund levies, marketing margin and VAT. The levies and margin are fixed baht per litre, so the pump price moves with the ex-refinery price times 1.07 (VAT). The app applies the selected crude move per litre, times a user-chosen pass-through share representing Oil Fund cushioning.
+
+### Pump-price stage and model combination
+
+A second local projection uses the monthly log change in a Bangkok retail fuel index (0.6 × diesel B7 + 0.4 × gasohol 95, EPPO Table 9, 2003 onward) as the shock. Because retail prices already contain excise changes and Oil Fund cushioning, this model conditions on policy as it actually happened. For months after the last published retail month, the index is taken from EPPO's daily price feed (monthly averages of the snapshots the sync accumulates); months without snapshots are interpolated in logs. The household estimate is the average of the pump-price model and the crude model; the displayed band is the envelope of their confidence intervals.
+
+### Rolling pseudo-out-of-sample evaluation
+
+For each origin T in the last 36 months the model is re-estimated on observations whose outcome month is at or before T. The oil-driven component of the outcome at month s is Σ_h β_h shock_{s−h}; the projected change from T to T+j is the difference of that component between T+j and T, using shocks realised through T+j (the test is of pass-through, not of oil-price forecasting). RMSE, MAE, bias and correlation against the actual change in the year-on-year rate are reported by horizon, alongside the RMSE of a "no change" projection.
+
+### Asymmetry
+
+Rises and falls in the crude shock are entered as separate regressors (max(x,0) and min(x,0), each with 12 lags). The two responses differ by less than their standard errors at every horizon examined, so the symmetric estimate is used.

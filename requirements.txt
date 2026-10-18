@@ -1,5 +1,10 @@
-pandas>=1.5.0
-numpy>=1.21.0
-statsmodels>=0.13.0
+pandas>=2.0
+numpy>=1.24
+statsmodels>=0.14
+scipy>=1.10
 matplotlib>=3.5.0
 openpyxl>=3.0.0
+xlrd>=2.0          # EIA .xls fallback source
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pytest>=7

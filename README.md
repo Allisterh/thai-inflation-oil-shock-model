@@ -1,95 +1,118 @@
-# Thailand Oil Price Shock → Inflation Pass-Through Model
+# Thailand oil shock → inflation and cost of living
 
-Estimating how oil price shocks transmit to Thai headline CPI inflation using Local Projections.
+A monthly local-projections model of how crude oil prices pass through to Thai consumer prices, estimated on official Thai data, re-synced every day, and served as a bilingual (Thai/English) web app that tells households what today's oil price means for their monthly budget.
 
-## Overview
+Live numbers come from Thai official sources wherever they exist:
 
-This project quantifies the pass-through of global oil price movements to Thailand's consumer price index. Using quarterly data from 2017–2025, I estimate impulse response functions that show how a 1% increase in Brent crude prices affects Thai YoY inflation over the following 8 quarters.
+| Series | Source | Frequency | Coverage |
+|---|---|---|---|
+| Consumer price index, headline and every category, with basket weights | Trade Policy and Strategy Office (TPSO), Ministry of Commerce, Index API | monthly | Jan 1976 → latest release |
+| Dubai, Brent and WTI crude | World Bank Commodity Price Data (Pink Sheet), IMF PCPS as fallback | monthly | 1960 → previous month |
+| Brent spot (dated Brent) | US EIA, ICE futures via Yahoo Finance as fallback | daily | 1987 → two days ago |
+| USD/THB | IMF IFS (monthly history); ECB reference rates via the open Frankfurter API (daily), Yahoo Finance only as a fallback | monthly and daily | 1957 → yesterday |
+| Pump prices by brand and the official price build-up (ex-refinery, excise, Oil Fund, margin, VAT) | Energy Policy and Planning Office (EPPO), Ministry of Energy, JSON | daily | snapshots accumulate from first run |
+| Bangkok retail prices by product | EPPO petroleum price statistics, Table 9 | monthly | 2003 → previous month |
 
-## Key Findings
+## Why Dubai, in baht
 
-| Horizon | Impact (pp per 1% oil shock) | Significant? |
-|---------|------------------------------|--------------|
-| Q1 | +0.072 | ✓ |
-| Q2 | +0.054 | ✓ |
-| Q3 | +0.077 | ✓ |
-| Q4 | +0.017 | — |
-| Q5 | +0.038 | ✓ |
-| Q6 | +0.038 | ✓ |
-| Q7 | −0.005 | — |
-| Q8 | −0.019 | ✓ |
+Thai refineries import mostly Middle East crude priced off the Dubai benchmark, and households pay in baht. The primary shock is therefore the monthly log change in Dubai crude converted at the monthly USD/THB rate. Dubai in dollars and Brent in dollars are estimated as alternatives and can be selected in the app. The spread between Brent and Dubai is not constant: in September 2026 Brent averaged 116.8 dollars while Dubai averaged 93.3, so the choice of benchmark changes the size of the shock materially.
 
-![Impulse Response Function](results/irf_plot.webp)
+## Two models, combined
 
-**Interpretation:** A 10% oil price increase raises Thai inflation by approximately 0.7–0.8 percentage points in the first 3 quarters. The effect then fades and slightly reverses by Q8, consistent with partial and transitory pass-through found in the literature.
+Government price management is the largest source of error in a crude-only model: Thailand's Oil Fund caps and subsidies mean pump prices do not follow crude one for one. The pipeline therefore estimates the same local projections twice:
 
-## Methodology
+1. **Pump-price model**: the shock is the monthly log change in a Bangkok retail fuel index (60% diesel B7, 40% gasohol 95, from EPPO, since 2003). It already embeds every policy decision and uses today's actual pump prices for the current month.
+2. **Crude model**: the shock is the monthly log change in Dubai crude in baht. It captures crude moves that have not reached the pump yet and is used for what-if scenarios.
 
-- **Model:** Local Projections (Jordà, 2005)
-- **Shock variable:** Quarterly log change in Brent crude price (× 100 = % change)
-- **Outcome:** Thailand headline CPI YoY inflation
-- **Specification:** CPI YoY at horizon *h* regressed on contemporaneous oil shock, 4 lags of CPI YoY, and 4 lags of oil shocks
-- **Inference:** HAC (Newey–West) standard errors with maxlags = *h* + 1
-- **Scenarios:** Linear scaling of β(*h*) for +10%, +20%, +30% oil shock scenarios
+The headline household number is the average of the two, and the band shown covers the confidence intervals of both. Each model is also shown on its own.
 
-> This is a reduced-form historical pass-through estimate, not a structural forecast.
+## How accurate it has been
 
-## Repository Structure
+`thai_oil_cpi/backtest.py` re-estimates each model every month over the last three years using only data available at the time, projects the change in headline inflation over the following months from the shocks that occurred, and compares with the outcome. Root-mean-square error in percentage points, against a benchmark of guessing "no change" (regenerated on every run; see `results/backtest_rolling.csv`):
 
-```
-thai-inflation-oil-shock-model/
-├── README.md
-├── requirements.txt
-├── notebooks/
-│   └── analysis.ipynb          # Main analysis notebook
-├── data/
-│   ├── brent_quarterly.xlsx    # Brent crude oil prices (quarterly)
-│   └── thai_cpi_quarterly.xlsx # Thailand CPI index (quarterly)
-├── results/
-│   ├── irf_oil_to_cpi_quarterly.csv        # Impulse response estimates
-│   └── scenario_impacts_oil_to_cpi_quarterly.csv  # Scenario analysis
-└── docs/
-    └── methodology.md          # Detailed methodology explanation
-```
+| Horizon | Pump-price model | Crude model | Combined | No change |
+|---|---|---|---|---|
+| 1 month | 0.59 | 0.71 | 0.62 | 0.65 |
+| 3 months | 0.89 | 1.21 | 0.95 | 1.34 |
+| 6 months | 0.96 | 1.57 | 1.14 | 2.08 |
+| 12 months | 1.47 | 2.12 | 1.61 | 2.87 |
 
-## Data Sources
+The pump-price model's six-month projections correlate 0.88 with outcomes. Both models have a small positive bias, meaning they slightly overstate inflation after oil shocks, consistent with policy cushioning that the crude model cannot see. The detailed page shows this table and a chart of six-month projections against outcomes.
 
-- **Brent Crude Oil Prices:** [EIA / World Bank / FRED]
-- **Thailand CPI Index:** Bank of Thailand
+Splitting crude rises from falls (`results/irf_monthly_dubai_thb_asymmetric.csv`) gives responses that differ by less than their standard errors, so a single symmetric response is used.
 
-## Quick Start
+## What the model finds
+
+Monthly local projections (Jordà 2005) on January 2000 to the latest CPI month, 12 lags of the outcome and of the shock, horizons 1 to 24 months, Newey–West standard errors. Response of each index's year-on-year rate to a 10% rise in Dubai crude in baht, percentage points (re-estimated on every run; see `results/irf_monthly_dubai_thb.csv`):
+
+| Index | 1 month | 3 months | 6 months | 12 months | 24 months |
+|---|---|---|---|---|---|
+| Headline CPI | +0.51 | +0.60 | +0.58 | +0.45 | +0.07 |
+| Energy | +4.4 | +4.2 | +3.5 | +1.3 | 0.0 |
+| Vehicles and fuel | +3.1 | +3.2 | +2.7 | +0.9 | −0.2 |
+| Food and drink | +0.04 | +0.26 | +0.45 | +0.68 | +0.05 |
+| Core | +0.05 | +0.11 | +0.16 | +0.19 | +0.02 |
+
+Energy and fuel prices react within a month and fade within a year. Food and core prices move later and more gently but persist, which is where most of the second-year cost lives.
+
+## The web app
+
+1. **Today's board**: latest monthly Dubai price, latest Brent spot, the baht, Gasohol 95 and diesel at the pump, and this month's crude move in baht versus last month (Dubai for the current month is nowcast from daily Brent times the latest Dubai/Brent ratio).
+2. **Thai inflation, latest**: headline, energy, food and core, year on year, from the newest TPSO release.
+3. **For your household**: monthly spending, a choice of oil price basis (what has already happened month to date, today's price held for the month, or a custom one-off move), and the household's spending shares for vehicle fuel, electricity and cooking gas, public transport and food, defaulting to the CPI basket weights. Outputs are the peak extra baht per month, the 12-month total, a category breakdown and the full 24-month inflation path with confidence band for any index.
+4. **At the pump**: the official price build-up for the chosen fuel from EPPO and the implied change per litre for the selected crude move, with a choice of how much the Oil Fund cushions.
+5. **Crude oil prices**: daily Brent, monthly Dubai versus Brent, and Bangkok retail prices since 2015.
+6. **What the model says**: impulse responses per index, the estimation data, method notes and the live source status.
+
+## Quick start
 
 ```bash
-# Clone the repository
-git clone https://github.com/[username]/thai-inflation-oil-shock-model.git
+git clone https://github.com/thaileetrakul27/thai-inflation-oil-shock-model.git
 cd thai-inflation-oil-shock-model
-
-# Install dependencies
 pip install -r requirements.txt
 
-# Run the analysis
-jupyter notebook notebooks/analysis.ipynb
+python -m thai_oil_cpi run        # sync all sources, re-estimate, write results/ and web/data/latest.json
+python -m thai_oil_cpi serve      # open http://127.0.0.1:8000
+python -m pytest                  # tests
 ```
 
-## Requirements
+`python -m thai_oil_cpi run --no-sync` re-estimates from the cache, `--offline` never touches the network, and `THAI_OIL_CPI_SAMPLE_START=2005-01` changes the estimation window. The web app is static: `web/` plus `web/data/latest.json` can be hosted anywhere, and `.github/workflows/daily-sync.yml` refreshes the data each weekday morning and deploys to GitHub Pages.
 
-- Python 3.8+
-- pandas
-- numpy
-- statsmodels
-- matplotlib
-- openpyxl
+## Repository layout
 
-## Scenario Analysis
+```
+thai_oil_cpi/
+├── sources/          # tpso.py, worldbank.py, eia.py, yahoo.py, dbnomics.py, eppo.py, http.py
+├── sync.py           # source chains, cache, status, monthly dataset and nowcast
+├── lp.py             # Jordà local projections with HAC standard errors
+├── model.py          # monthly estimation for every (shock, outcome) pair
+├── projection.py     # observed-shock paths, scenarios, household breakdown, pump prices
+├── pipeline.py       # run everything, write results/ and web/data/latest.json
+├── app.py            # FastAPI: web app + /api/latest, /api/project, /api/status, /api/refresh
+└── __main__.py       # python -m thai_oil_cpi {sync,run,serve}
+web/                  # index.html, app.js, style.css, data/latest.json
+data/cache/           # synced series and sync_status.json (committed so the static site has data)
+data/*.xlsx           # the original hand-curated quarterly files (kept for the notebook and a cross-check test)
+results/              # irf_monthly_*.csv, model_dataset_monthly.csv, cpi_weights_tpso.csv, legacy quarterly outputs
+notebooks/analysis.ipynb   # the original quarterly exploration
+docs/methodology.md
+tests/
+```
 
-For a **20% oil price shock** (e.g., geopolitical crisis):
+## Sync behaviour
 
-| Quarter | CPI Impact (pp) | 95% CI |
-|---------|-----------------|--------|
-| Q1 | +1.43 | [0.85, 2.01] |
-| Q2 | +1.08 | [0.47, 1.69] |
-| Q3 | +1.54 | [0.88, 2.20] |
-| Q4 | +0.33 | [−0.24, 0.90] |
+Every series has an ordered chain of sources; the first that answers is cached and the cache is served when all fail. `data/cache/sync_status.json` records which source was used, when, the latest observation and any errors. TPSO is only re-downloaded when its `lastUpdated` stamp changes. External CPI data is cross-checked against the original curated spreadsheet in `tests/test_crosscheck.py` (they agree to two decimals).
+
+## Is local projections the right method?
+
+Local projections (Jordà 2005) and structural VARs are the two standard tools for estimating how oil prices pass through to consumer prices; central banks and the IMF use both, and the two give similar impulse responses when the specifications match. Local projections are preferred here because they impose less structure on the dynamics, handle a 24-month horizon without inverting a VAR, and make the Newey–West inference straightforward. What they do not solve is identification: an oil price move can reflect global demand as well as supply. For a small open economy like Thailand the world oil price is close to exogenous, which is the assumption made here. The remaining limitations of the approach are the ones listed below.
+
+## Caveats
+
+- Reduced-form historical pass-through, not a forecast. No current policy (diesel caps financed by the Oil Fund, electricity tariff measures, interest rates) is modelled.
+- Linear and symmetric by construction. Confidence bands on paths that combine many shocks ignore the covariance between horizons.
+- The current month's Dubai price is a nowcast from daily Brent spot and last month's Dubai/Brent ratio. When that spread moves fast, the nowcast is off.
+- Household figures scale the category indices by the household's own spending shares; everything outside the four named categories is proxied by core inflation.
 
 ## License
 
@@ -102,3 +125,4 @@ Thai Leetrakul
 ## References
 
 - Jordà, Ò. (2005). Estimation and inference of impulse responses by local projections. *American Economic Review*, 95(1), 161–182.
+- Newey, W. K., & West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix. *Econometrica*, 55(3), 703–708.
