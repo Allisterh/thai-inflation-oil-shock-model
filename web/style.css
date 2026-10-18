@@ -63,7 +63,16 @@ main > section:first-child { border-top: 0; padding-top: 28px; }
 
 /* header */
 .top { border-bottom: 1px solid var(--grid); background: var(--surface); }
-.top-row { display: flex; align-items: center; justify-content: space-between; height: 54px; }
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 54px; flex-wrap: wrap; padding: 6px 0; }
+.pages { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
+.pages a { font: 500 .88rem var(--font-body); color: var(--ink-2); text-decoration: none; padding: 6px 10px; border-radius: 3px; border: 1px solid transparent; white-space: nowrap; }
+.pages a:hover { color: var(--ink); border-color: var(--axis); }
+.pages a[aria-current="page"] { color: var(--page); background: var(--ink); border-color: var(--ink); }
+@media (max-width: 720px) {
+  .pages { order: 3; width: 100%; margin: 0 0 4px; gap: 0; border: 1px solid var(--axis); border-radius: 3px; overflow: hidden; }
+  .pages a { flex: 1 1 0; text-align: center; padding: 8px 4px; font-size: .8rem; border: 0; border-right: 1px solid var(--axis); border-radius: 0; white-space: normal; line-height: 1.2; }
+  .pages a:last-child { border-right: 0; }
+}
 .brand { font-family: var(--font-display); font-weight: 600; color: var(--ink); text-decoration: none; font-size: 1.05rem; }
 .lang { font: 500 .85rem var(--font-body); background: none; border: 1px solid var(--axis); border-radius: 2px; padding: 4px 10px; color: var(--ink); cursor: pointer; }
 .lang:hover { border-color: var(--accent); color: var(--accent); }

@@ -3,7 +3,7 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", title: "วิธีคิดของเรา และทำไมถึงเชื่อถือได้",
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navMethod: "ทำไมถึงเชื่อถือได้", navHow: "วิธีคิดฉบับสั้น", navAdvanced: "กราฟและรายละเอียด",  title: "วิธีคิดของเรา และทำไมถึงเชื่อถือได้",
       backSimple: "กลับไปคำนวณของคุณ", toMethod: "หลักฐานและวิธีคิดฉบับเต็ม", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
       asOf: (d) => `อัปเดตล่าสุด ${d}`, foot: (d) => `ข้อมูล: กระทรวงพาณิชย์ สนพ. ธนาคารโลก EIA ธนาคารกลางยุโรป อัปเดต ${d}`,
       body: (f) => `
@@ -35,7 +35,7 @@
 <p class="oneline">สรุปในประโยคเดียว เว็บนี้รวมข้อเท็จจริงที่คุณตรวจสอบได้ เข้ากับวิธีทางสถิติที่เป็นมาตรฐาน สร้างบนข้อมูลทางการของไทย ทดสอบกับโลกจริงใหม่ทุกเช้า และบอกอัตราความคลาดเคลื่อนของตัวเอง</p>`,
     },
     en: {
-      brand: "Oil and the cost of living", title: "How this works, and why you can trust it",
+      brand: "Oil and the cost of living", navHome: "Your calculation", navMethod: "Why trust it", navHow: "Short version", navAdvanced: "Charts and details",  title: "How this works, and why you can trust it",
       backSimple: "Back to your calculation", toMethod: "Full evidence and method", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
       asOf: (d) => `Updated ${d}`, foot: (d) => `Sources: Ministry of Commerce, EPPO, World Bank, US EIA, European Central Bank. Updated ${d}`,
       body: (f) => `
