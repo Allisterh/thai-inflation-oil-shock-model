@@ -4,9 +4,9 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navMethod: "ทำไมถึงเชื่อถือได้", navHow: "วิธีคิดฉบับสั้น", navAdvanced: "กราฟและรายละเอียด",  title: "ทำไมตัวเลขนี้เชื่อถือได้",
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",  title: "ทำไมตัวเลขนี้เชื่อถือได้",
       lede: "หน้าแรกขอให้คุณเชื่อตัวเลขที่เป็นการประมาณ เราจึงควรพิสูจน์ให้เห็น ไม่ใช่แค่บอก หน้านี้แสดงว่าเราทดสอบอย่างไร ผิดบ่อยแค่ไหน คิดอย่างไร และข้อมูลมาจากไหน ทุกตัวเลขในหน้านี้คำนวณใหม่ทุกวันจากข้อมูลล่าสุด ไม่ได้พิมพ์ไว้ตายตัว",
-      backSimple: "กลับไปคำนวณของคุณ", toHow: "ฉบับสั้น", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
+      backSimple: "กลับไปคำนวณของคุณ", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
       asOf: (d) => `อัปเดตล่าสุด ${d}`, foot: (d) => `ข้อมูล: กระทรวงพาณิชย์ สนพ. ธนาคารโลก EIA ธนาคารกลางยุโรป อัปเดต ${d}`,
       proof: (f) => [
         [`${f.rmse6} จุด`, `ความคลาดเคลื่อนเฉลี่ยของตัวเลข 6 เดือนล่วงหน้า ใน 3 ปีที่ผ่านมา ถ้าเดาว่า "ไม่มีอะไรเปลี่ยน" จะคลาด ${f.naive6} จุด`],
@@ -70,9 +70,9 @@
       latest: "ล่าสุด", cached: "ใช้ข้อมูลสำรอง",
     },
     en: {
-      brand: "Oil and the cost of living", navHome: "Your calculation", navMethod: "Why trust it", navHow: "Short version", navAdvanced: "Charts and details",  title: "Why you can trust these numbers",
+      brand: "Oil and the cost of living", navHome: "Your calculation", navMethod: "Why trust it", navAdvanced: "Charts and details",  title: "Why you can trust these numbers",
       lede: "The front page asks you to believe an estimate. That deserves proof, not just reassurance. This page shows how the model is tested, how often it is wrong, how it thinks, and where the data comes from. Every figure here is recomputed from the latest data on every run; none of it is typed in.",
-      backSimple: "Back to your calculation", toHow: "Short version", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
+      backSimple: "Back to your calculation", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
       asOf: (d) => `Updated ${d}`, foot: (d) => `Sources: Ministry of Commerce, EPPO, World Bank, US EIA, European Central Bank. Updated ${d}`,
       proof: (f) => [
         [`${f.rmse6} pts`, `Average error of our 6-month estimate over the past 3 years. Guessing "nothing changes" would be off by ${f.naive6}.`],

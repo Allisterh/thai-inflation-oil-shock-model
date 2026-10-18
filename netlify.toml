@@ -15,3 +15,9 @@
   for = "/data/*"
   [headers.values]
     Cache-Control = "public, max-age=300"
+
+# The former short explainer now lives on the methodology page.
+[[redirects]]
+  from = "/how.html"
+  to = "/methodology.html"
+  status = 301
