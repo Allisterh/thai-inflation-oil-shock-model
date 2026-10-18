@@ -82,7 +82,7 @@
     },
     en: {
       brand: "Oil and the cost of living", backSimple: "Back to the simple page",
-      h1: "When oil gets dearer today, how much more will your household pay, and when",
+      h1: "When oil prices go up, how much more will your household pay, and when",
       lede: "This page follows Dubai crude, the benchmark Thai refineries actually buy against, alongside daily Brent and the baht. It uses the Ministry of Commerce's monthly consumer price indices since 2000 to estimate how an oil price move feeds into inflation, energy prices, travel costs and food prices, how many months later, and what that means in baht per month for your household.",
       boardTitle: "Today's board", tileDubai: (m) => `Dubai crude, ${m} average`, unitUsdBbl: "US dollars per barrel", perLitre: (v) => `≈ ${v} baht per litre`,
       tileBrent: "Brent spot, latest", brentSub: (d) => `${d}, dollars per barrel (EIA)`, tileFx: "Exchange rate", unitThbUsd: "baht per dollar",
