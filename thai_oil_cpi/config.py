@@ -41,8 +41,13 @@ CONF_Z = 1.96
 
 # Outcomes (TPSO series names from sources.tpso.CODES) and shock variants.
 OUTCOMES = ["headline", "energy", "vehicles_fuel", "electricity_fuel_water", "public_transport", "food", "core"]
-SHOCKS = {"dubai_thb": "shock_dubai_thb", "dubai_usd": "shock_dubai_usd", "brent_usd": "shock_brent_usd"}
-PRIMARY_SHOCK = "dubai_thb"
+SHOCKS = {"dubai_thb": "shock_dubai_thb", "retail_fuel": "shock_retail_fuel", "dubai_usd": "shock_dubai_usd", "brent_usd": "shock_brent_usd"}
+# Retail fuel index weights (share of road-fuel volume): diesel dominates in Thailand.
+RETAIL_FUEL_WEIGHTS = {"diesel": 0.6, "gasoline": 0.4}
+PRIMARY_SHOCK = "dubai_thb"          # used for what-if scenarios and the asymmetric diagnostic
+COMBINED_SHOCKS = ("retail_fuel", "dubai_thb")  # averaged for the headline household estimate
+DISPLAY_DEFAULT = "combined"
+BACKTEST_ORIGINS = 36
 
 # Sync behaviour.
 DEFAULT_MAX_AGE_HOURS = float(os.environ.get("THAI_OIL_CPI_MAX_AGE_HOURS", "12"))

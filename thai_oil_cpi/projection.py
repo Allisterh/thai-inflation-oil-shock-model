@@ -67,6 +67,16 @@ def shock_history(monthly: pd.DataFrame, nowcast: dict, column: str = "shock_dub
     """
     past = monthly[column].dropna().tail(n_past)
     out = [(str(p), float(v)) for p, v in past.items()]
+    if column == "shock_retail_fuel":
+        prev_level = nowcast.get("retail_last_level")
+        for m in nowcast.get("retail_months", []):
+            level = m.get("retail_fuel_thb_per_litre")
+            if not level or not prev_level:
+                continue
+            tag = " (interpolated)" if m.get("interpolated") and not m.get("partial") else " (so far)" if m.get("partial") else " (nowcast)"
+            out.append((m["month"] + tag, float(100 * math.log(level / prev_level))))
+            prev_level = level
+        return out
     level_col = {"shock_dubai_thb": "dubai_thb", "shock_dubai_usd": "dubai_usd", "shock_brent_usd": "brent_usd"}[column]
     prev_level = float(monthly[level_col].dropna().iloc[-1])
     key = {"dubai_thb": "dubai_thb_nowcast", "dubai_usd": "dubai_usd_nowcast", "brent_usd": "brent_usd"}[level_col]

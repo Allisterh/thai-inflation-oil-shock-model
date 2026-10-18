@@ -149,3 +149,15 @@ The oil-driven contribution to each index j months ahead sums the last 24 monthl
 ### Pump prices
 
 EPPO's price build-up gives, per product, the ex-refinery price, excise, municipal tax, Oil Fund and conservation fund levies, marketing margin and VAT. The levies and margin are fixed baht per litre, so the pump price moves with the ex-refinery price times 1.07 (VAT). The app applies the selected crude move per litre, times a user-chosen pass-through share representing Oil Fund cushioning.
+
+### Pump-price stage and model combination
+
+A second local projection uses the monthly log change in a Bangkok retail fuel index (0.6 × diesel B7 + 0.4 × gasohol 95, EPPO Table 9, 2003 onward) as the shock. Because retail prices already contain excise changes and Oil Fund cushioning, this model conditions on policy as it actually happened. For months after the last published retail month, the index is taken from EPPO's daily price feed (monthly averages of the snapshots the sync accumulates); months without snapshots are interpolated in logs. The household estimate is the average of the pump-price model and the crude model; the displayed band is the envelope of their confidence intervals.
+
+### Rolling pseudo-out-of-sample evaluation
+
+For each origin T in the last 36 months the model is re-estimated on observations whose outcome month is at or before T. The oil-driven component of the outcome at month s is Σ_h β_h shock_{s−h}; the projected change from T to T+j is the difference of that component between T+j and T, using shocks realised through T+j (the test is of pass-through, not of oil-price forecasting). RMSE, MAE, bias and correlation against the actual change in the year-on-year rate are reported by horizon, alongside the RMSE of a "no change" projection.
+
+### Asymmetry
+
+Rises and falls in the crude shock are entered as separate regressors (max(x,0) and min(x,0), each with 12 lags). The two responses differ by less than their standard errors at every horizon examined, so the symmetric estimate is used.

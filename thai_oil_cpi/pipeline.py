@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
+from .backtest import rolling_backtest
 from .model import estimate_all, monthly_spec
 from .projection import HOUSEHOLD_CATEGORIES, observed_shock_path, shock_history
 from .sync import Dataset, build_dataset, sync_all
@@ -84,6 +85,14 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
         hist = shock_history(m, nc, C.SHOCKS[C.PRIMARY_SHOCK], current_mode=mode)
         current[f"shock_{mode}_pct"] = hist[-1][1] if hist and "(" in hist[-1][0] else None
         current[f"shock_{mode}_label"] = hist[-1][0] if hist else None
+    for mode in ("mtd", "spot"):
+        if "retail_fuel" in C.SHOCKS and "shock_retail_fuel" in m:
+            hist = shock_history(m, nc, "shock_retail_fuel", current_mode=mode)
+            current[f"retail_shock_{mode}_pct"] = hist[-1][1] if hist and "(" in hist[-1][0] else None
+    if nc.get("retail_last_level") and nc.get("retail_latest"):
+        w = C.RETAIL_FUEL_WEIGHTS
+        latest_level = w["diesel"] * nc["retail_latest"]["diesel_b7"] + w["gasoline"] * nc["retail_latest"]["gasohol95"]
+        current["retail_fuel_change_since_last_month_pct"] = float(100 * (latest_level / nc["retail_last_level"] - 1))
     yoy_dubai = m["dubai_thb"].pct_change(12).iloc[-1] * 100 if len(m) > 12 else None
     current["dubai_thb_yoy_pct"] = None if yoy_dubai is None or pd.isna(yoy_dubai) else float(yoy_dubai)
 
@@ -113,10 +122,60 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
                 paths[oc] = [{k: v for k, v in r.items() if k != "contributions"} for r in observed_shock_path(irf, hist)]
             proj[key][f"observed_{mode}"] = {"shocks": hist, "paths": paths}
 
+    # Combined estimate: average of the pump-price model and the crude model, band = envelope of both.
+    a, b = C.COMBINED_SHOCKS
+    if a in proj and b in proj:
+        proj["combined"] = {}
+        irf_payload["combined"] = {}
+        for oc in irfs[a]:
+            if oc not in irfs[b]:
+                continue
+            ra, rb = irfs[a][oc].set_index("h"), irfs[b][oc].set_index("h")
+            irf_payload["combined"][oc] = [{"h": int(h), "beta": None, "se": None, "lower": None, "upper": None, "n": None,
+                                            "significant": None, "note": "see the two underlying models"} for h in ra.index]
+        for mode in ("mtd", "spot"):
+            pa, pb = proj[a][f"observed_{mode}"]["paths"], proj[b][f"observed_{mode}"]["paths"]
+            paths = {}
+            for oc in pa:
+                if oc not in pb:
+                    continue
+                paths[oc] = [{"h": x["h"], "impact_pp": (x["impact_pp"] + y["impact_pp"]) / 2,
+                              "lower_pp": min(x["lower_pp"], y["lower_pp"]), "upper_pp": max(x["upper_pp"], y["upper_pp"]),
+                              "retail_pp": x["impact_pp"], "crude_pp": y["impact_pp"]} for x, y in zip(pa[oc], pb[oc])]
+            proj["combined"][f"observed_{mode}"] = {"shocks": {a: proj[a][f"observed_{mode}"]["shocks"], b: proj[b][f"observed_{mode}"]["shocks"]}, "paths": paths}
+
+    # Rolling pseudo-out-of-sample backtest (headline and energy) for each model and the combination.
+    backtests = {}
+    for key in (a, b):
+        if key in irfs:
+            backtests[key] = {oc: rolling_backtest(m, C.SHOCKS[key], oc, origins=C.BACKTEST_ORIGINS) for oc in ("headline", "energy")}
+    if a in backtests and b in backtests:
+        backtests["combined"] = {}
+        for oc in ("headline", "energy"):
+            ra = pd.DataFrame(backtests[a][oc]["rows"]); rb = pd.DataFrame(backtests[b][oc]["rows"])
+            mm = ra.merge(rb, on=["origin", "h"], suffixes=("_a", "_b"))
+            mm["projected"] = (mm["projected_a"] + mm["projected_b"]) / 2; mm["actual"] = mm["actual_a"]
+            by_h = []
+            for j, g in mm.groupby("h"):
+                err = g["projected"] - g["actual"]
+                by_h.append({"h": int(j), "n": int(len(g)), "rmse": float(np.sqrt((err ** 2).mean())), "mae": float(err.abs().mean()),
+                             "bias": float(err.mean()), "rmse_no_change": float(np.sqrt((g["actual"] ** 2).mean())),
+                             "corr": float(g["projected"].corr(g["actual"]))})
+            backtests["combined"][oc] = {"shock": "combined", "outcome": oc, "origins": int(mm["origin"].nunique()), "by_h": by_h,
+                                         "rows": mm[["origin", "h", "projected", "actual"]].round(4).to_dict(orient="records")}
+    for key in backtests:  # keep only the 6-month rows for the chart to limit size
+        for oc in backtests[key]:
+            backtests[key][oc]["rows"] = [r for r in backtests[key][oc]["rows"] if r["h"] == 6]
+
+    asym = {}
+    for oc, pair in irfs.get("_asymmetric", {}).items():
+        asym[oc] = {k: _irf_records(v) for k, v in pair.items()}
+
     # Monthly data for charts (from sample start)
     start = pd.Period(meta["sample_start"], freq="M")
     keep = [c for c in m.columns if c.startswith("yoy_") or c in ("dubai_usd", "brent_usd", "usdthb", "dubai_thb_per_litre",
-                                                                   "shock_dubai_thb", "shock_dubai_usd", "shock_brent_usd")]
+                                                                   "shock_dubai_thb", "shock_dubai_usd", "shock_brent_usd",
+                                                                   "shock_retail_fuel", "retail_fuel_thb_per_litre")]
     monthly_rows = [{"month": str(i), **{c: (None if pd.isna(r[c]) else float(r[c])) for c in keep}}
                     for i, r in m[m.index >= start][keep].iterrows()]
 
@@ -127,6 +186,8 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
             "spec": meta["spec"], "sample_start": meta["sample_start"], "samples": meta["samples"],
             "primary_shock": C.PRIMARY_SHOCK,
             "shock_definitions": {
+                "retail_fuel": "100 × Δlog(Bangkok pump price index: 0.6 diesel B7 + 0.4 gasohol 95), EPPO",
+                "combined": "average of the pump-price model and the Dubai-in-baht model",
                 "dubai_thb": "100 × Δlog(monthly Dubai crude in baht) = Dubai USD/bbl × USD/THB",
                 "dubai_usd": "100 × Δlog(monthly Dubai crude, USD/bbl)",
                 "brent_usd": "100 × Δlog(monthly Brent crude, USD/bbl)"},
@@ -140,6 +201,10 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
         "retail": retail,
         "irfs": irf_payload,
         "projections": proj,
+        "display_default": C.DISPLAY_DEFAULT,
+        "combined_of": list(C.COMBINED_SHOCKS),
+        "backtests": backtests,
+        "asymmetric": asym,
         "data": {"monthly": monthly_rows, "brent_daily": _daily_payload(brent_d, C.WEB_DAILY_DAYS),
                  "usdthb_daily": _daily_payload(ds.usdthb_daily, C.WEB_DAILY_DAYS)},
         "sources": ds.status,
@@ -161,9 +226,22 @@ def run(sync: bool = True, force: bool = False, offline: bool = False, sample_st
         if frames:
             pd.concat(frames).to_csv(C.RESULTS_DIR / f"irf_monthly_{key}.csv", index=False)
     ds.monthly.to_csv(C.RESULTS_DIR / "model_dataset_monthly.csv")
+    if "_asymmetric" in irfs:
+        frames = []
+        for oc, pair in irfs["_asymmetric"].items():
+            for direction, irf in pair.items():
+                f = irf.copy(); f.insert(0, "direction", direction); f.insert(0, "outcome", oc); frames.append(f)
+        pd.concat(frames).to_csv(C.RESULTS_DIR / f"irf_monthly_{C.PRIMARY_SHOCK}_asymmetric.csv", index=False)
     pd.Series(ds.weights).rename("weight_pct").to_csv(C.RESULTS_DIR / "cpi_weights_tpso.csv")
 
     payload = build_payload(ds, irfs)
+    rows = []
+    for key, by_oc in payload.get("backtests", {}).items():
+        for oc, bt in by_oc.items():
+            for r in bt["by_h"]:
+                rows.append({"model": key, "outcome": oc, **r})
+    if rows:
+        pd.DataFrame(rows).to_csv(C.RESULTS_DIR / "backtest_rolling.csv", index=False)
     C.WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
     C.LATEST_JSON.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
     return payload

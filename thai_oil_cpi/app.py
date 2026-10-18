@@ -91,7 +91,7 @@ def api_refresh(force: bool = False):
 def api_project(
     shock_pct: float = Query(..., ge=-80, le=200, description="Oil price change in % (log points)"),
     monthly_spend_thb: float = Query(24000, ge=0),
-    shock: str = Query(C.PRIMARY_SHOCK, pattern="^(dubai_thb|dubai_usd|brent_usd)$"),
+    shock: str = Query(C.PRIMARY_SHOCK, pattern="^(dubai_thb|dubai_usd|brent_usd|retail_fuel)$"),
     share_vehicles_fuel: float | None = Query(None, ge=0, le=1),
     share_electricity_fuel_water: float | None = Query(None, ge=0, le=1),
     share_public_transport: float | None = Query(None, ge=0, le=1),

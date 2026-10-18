@@ -17,6 +17,30 @@ Live numbers come from Thai official sources wherever they exist:
 
 Thai refineries import mostly Middle East crude priced off the Dubai benchmark, and households pay in baht. The primary shock is therefore the monthly log change in Dubai crude converted at the monthly USD/THB rate. Dubai in dollars and Brent in dollars are estimated as alternatives and can be selected in the app. The spread between Brent and Dubai is not constant: in September 2026 Brent averaged 116.8 dollars while Dubai averaged 93.3, so the choice of benchmark changes the size of the shock materially.
 
+## Two models, combined
+
+Government price management is the largest source of error in a crude-only model: Thailand's Oil Fund caps and subsidies mean pump prices do not follow crude one for one. The pipeline therefore estimates the same local projections twice:
+
+1. **Pump-price model**: the shock is the monthly log change in a Bangkok retail fuel index (60% diesel B7, 40% gasohol 95, from EPPO, since 2003). It already embeds every policy decision and uses today's actual pump prices for the current month.
+2. **Crude model**: the shock is the monthly log change in Dubai crude in baht. It captures crude moves that have not reached the pump yet and is used for what-if scenarios.
+
+The headline household number is the average of the two, and the band shown covers the confidence intervals of both. Each model is also shown on its own.
+
+## How accurate it has been
+
+`thai_oil_cpi/backtest.py` re-estimates each model every month over the last three years using only data available at the time, projects the change in headline inflation over the following months from the shocks that occurred, and compares with the outcome. Root-mean-square error in percentage points, against a benchmark of guessing "no change" (regenerated on every run; see `results/backtest_rolling.csv`):
+
+| Horizon | Pump-price model | Crude model | Combined | No change |
+|---|---|---|---|---|
+| 1 month | 0.59 | 0.71 | 0.62 | 0.65 |
+| 3 months | 0.89 | 1.21 | 0.95 | 1.34 |
+| 6 months | 0.96 | 1.57 | 1.14 | 2.08 |
+| 12 months | 1.47 | 2.12 | 1.61 | 2.87 |
+
+The pump-price model's six-month projections correlate 0.88 with outcomes. Both models have a small positive bias, meaning they slightly overstate inflation after oil shocks, consistent with policy cushioning that the crude model cannot see. The detailed page shows this table and a chart of six-month projections against outcomes.
+
+Splitting crude rises from falls (`results/irf_monthly_dubai_thb_asymmetric.csv`) gives responses that differ by less than their standard errors, so a single symmetric response is used.
+
 ## What the model finds
 
 Monthly local projections (Jordà 2005) on January 2000 to the latest CPI month, 12 lags of the outcome and of the shock, horizons 1 to 24 months, Newey–West standard errors. Response of each index's year-on-year rate to a 10% rise in Dubai crude in baht, percentage points (re-estimated on every run; see `results/irf_monthly_dubai_thb.csv`):
@@ -78,6 +102,10 @@ tests/
 ## Sync behaviour
 
 Every series has an ordered chain of sources; the first that answers is cached and the cache is served when all fail. `data/cache/sync_status.json` records which source was used, when, the latest observation and any errors. TPSO is only re-downloaded when its `lastUpdated` stamp changes. External CPI data is cross-checked against the original curated spreadsheet in `tests/test_crosscheck.py` (they agree to two decimals).
+
+## Is local projections the right method?
+
+Local projections (Jordà 2005) and structural VARs are the two standard tools for estimating how oil prices pass through to consumer prices; central banks and the IMF use both, and the two give similar impulse responses when the specifications match. Local projections are preferred here because they impose less structure on the dynamics, handle a 24-month horizon without inverting a VAR, and make the Newey–West inference straightforward. What they do not solve is identification: an oil price move can reflect global demand as well as supply. For a small open economy like Thailand the world oil price is close to exogenous, which is the assumption made here. The remaining limitations of the approach are the ones listed below.
 
 ## Caveats
 

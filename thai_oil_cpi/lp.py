@@ -83,3 +83,40 @@ def scenario_table(irf: pd.DataFrame, shocks_pct: list[float]) -> pd.DataFrame:
                 "Lower_pp": r["lower"] * s, "Upper_pp": r["upper"] * s,
             })
     return pd.DataFrame(out)
+
+
+def local_projections_asymmetric(y: pd.Series, x: pd.Series, spec: LPSpec | None = None) -> dict[str, pd.DataFrame]:
+    """Separate responses to increases and decreases in the shock.
+
+    The shock enters as two regressors, max(x, 0) and min(x, 0), each with its own lags, so
+    β⁺_h and β⁻_h are the responses to a one-unit rise and a one-unit fall. Returns
+    {'up': irf, 'down': irf} with the same columns as ``local_projections``.
+    """
+    spec = spec or LPSpec()
+    df = pd.DataFrame({"y": y.astype(float), "x": x.astype(float)}).dropna()
+    df["xp"] = df["x"].clip(lower=0)
+    df["xn"] = df["x"].clip(upper=0)
+    for k in range(1, spec.lags_y + 1):
+        df[f"y_lag{k}"] = df["y"].shift(k)
+    for k in range(1, spec.lags_x + 1):
+        df[f"xp_lag{k}"] = df["xp"].shift(k)
+        df[f"xn_lag{k}"] = df["xn"].shift(k)
+    x_cols = ["xp", "xn"] + [f"y_lag{k}" for k in range(1, spec.lags_y + 1)] + \
+             [f"xp_lag{k}" for k in range(1, spec.lags_x + 1)] + [f"xn_lag{k}" for k in range(1, spec.lags_x + 1)]
+    rows = {"up": [], "down": []}
+    for h in spec.horizons:
+        tmp = df.copy(); tmp["y_lead"] = tmp["y"].shift(-h); tmp = tmp[["y_lead"] + x_cols].dropna()
+        if len(tmp) <= len(x_cols) + 2:
+            for k in rows: rows[k].append({"h": h, "beta": np.nan, "se": np.nan, "n": int(len(tmp)), "tstat": np.nan, "pvalue": np.nan})
+            continue
+        res = sm.OLS(tmp["y_lead"], sm.add_constant(tmp[x_cols])).fit(cov_type="HAC", cov_kwds={"maxlags": h + spec.hac_extra_lags})
+        for key, col in (("up", "xp"), ("down", "xn")):
+            rows[key].append({"h": h, "beta": float(res.params[col]), "se": float(res.bse[col]), "n": int(res.nobs),
+                              "tstat": float(res.tvalues[col]), "pvalue": float(res.pvalues[col])})
+    out = {}
+    for key, r in rows.items():
+        irf = pd.DataFrame(r)
+        irf["lower"] = irf["beta"] - spec.conf_z * irf["se"]; irf["upper"] = irf["beta"] + spec.conf_z * irf["se"]
+        irf["significant"] = (irf["lower"] > 0) | (irf["upper"] < 0)
+        out[key] = irf
+    return out

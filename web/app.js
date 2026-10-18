@@ -35,7 +35,12 @@
       basisLegend: "ใช้ราคาน้ำมันแบบไหน", basisMtd: "ราคาที่เกิดขึ้นแล้ว รวมเดือนนี้จนถึงวันนี้", basisSpot: "ราคาที่เกิดขึ้นแล้ว ถ้าราคาวันนี้คงอยู่ทั้งเดือน", basisCustom: "สมมติเอง น้ำมันดิบเปลี่ยนครั้งเดียว",
       sharesTitle: "สัดส่วนค่าใช้จ่ายของครอบครัวคุณ", sharesHint: "ค่าเริ่มต้นคือน้ำหนักตะกร้าดัชนีราคาผู้บริโภคของกระทรวงพาณิชย์ ปรับให้ตรงกับครอบครัวคุณได้",
       shareOther: (v) => `ที่เหลือ ${v} ของค่าใช้จ่ายคือหมวดอื่น ๆ ซึ่งใช้ผลต่อเงินเฟ้อพื้นฐานเป็นตัวแทน`,
-      advanced: "ตัวเลือกแบบจำลอง", shockDubaiThb: "น้ำมันดิบดูไบเป็นบาท (ค่าเริ่มต้น รวมผลค่าเงิน)", shockDubaiUsd: "น้ำมันดิบดูไบเป็นดอลลาร์", shockBrentUsd: "เบรนท์เป็นดอลลาร์",
+      advanced: "ตัวเลือกแบบจำลอง", shockCombined: "ค่ากลางของสองแบบจำลอง (ค่าเริ่มต้น)", shockRetail: "จากราคาหน้าปั๊มจริง (รวมการพยุงของรัฐแล้ว)", shockDubaiThb: "จากน้ำมันดิบดูไบเป็นบาท", shockDubaiUsd: "จากน้ำมันดิบดูไบเป็นดอลลาร์", shockBrentUsd: "จากเบรนท์เป็นดอลลาร์",
+      combinedNote: "ค่ากลางคือค่าเฉลี่ยของแบบจำลองที่ใช้ราคาหน้าปั๊มจริง กับแบบจำลองที่ใช้น้ำมันดิบ ช่วงที่แสดงครอบคลุมช่วงความเชื่อมั่นของทั้งสอง",
+      btTitle: "แบบจำลองแม่นแค่ไหนในช่วง 3 ปีที่ผ่านมา", btSub: "ทดสอบย้อนหลังแบบไม่ใช้ข้อมูลอนาคต ประมาณแบบจำลองใหม่ทุกเดือน แล้วเทียบการเปลี่ยนแปลงของเงินเฟ้อทั่วไปที่ทำนายกับที่เกิดจริง (จุดเปอร์เซ็นต์)",
+      btModel: "แบบจำลอง", btH: "ล่วงหน้า", btRmse: "คลาดเคลื่อนเฉลี่ย (RMSE)", btNaive: "ถ้าทายว่าไม่เปลี่ยน", btCorr: "สหสัมพันธ์", btMonths: (h) => `${h} เดือน`,
+      btChartTitle: "ทำนายล่วงหน้า 6 เดือน เทียบกับที่เกิดจริง (การเปลี่ยนแปลงของเงินเฟ้อทั่วไป จุดเปอร์เซ็นต์)", btProjected: "ที่แบบจำลองทำนาย", btActual: "ที่เกิดจริง",
+      asymNote: (d) => `เมื่อแยกช่วงน้ำมันขึ้นกับลง ผลจากน้ำมันแพงขึ้น 10% ต่อเงินเฟ้อทั่วไปที่ 12 เดือนคือ ${d.up} จุด ส่วนน้ำมันถูกลง 10% คือ ${d.down} จุด ความแตกต่างอยู่ในช่วงความคลาดเคลื่อน จึงใช้ค่าเดียวกันทั้งสองทิศทาง`,
       ansPeak: "ช่วงที่หนักที่สุด คุณจะจ่ายเพิ่มประมาณ", perMonth: "บาทต่อเดือน", ansYear: "รวม 12 เดือนข้างหน้า", baht: "บาท",
       ansInfl: "เงินเฟ้อทั่วไปจะสูงกว่าที่ควรจะเป็น", pp: "จุดเปอร์เซ็นต์",
       inMonth: (m) => `ในเดือน${m}`, yearSub: (v) => `ถ้าตะกร้าของคุณเหมือนครัวเรือนเฉลี่ย จะเป็น ${v} บาท`,
@@ -89,7 +94,12 @@
       basisLegend: "Which oil price to use", basisMtd: "What has already happened, including this month to date", basisSpot: "What has already happened, with today's price held all month", basisCustom: "My own one-off change in crude",
       sharesTitle: "Your household's spending shares", sharesHint: "Defaults are the Ministry of Commerce CPI basket weights. Adjust them to match your household.",
       shareOther: (v) => `The remaining ${v} of spending is everything else, proxied by the effect on core inflation.`,
-      advanced: "Model options", shockDubaiThb: "Dubai crude in baht (default, includes the exchange rate)", shockDubaiUsd: "Dubai crude in dollars", shockBrentUsd: "Brent in dollars",
+      advanced: "Model options", shockCombined: "Middle of the two models (default)", shockRetail: "From actual pump prices (government cushioning included)", shockDubaiThb: "From Dubai crude in baht", shockDubaiUsd: "From Dubai crude in dollars", shockBrentUsd: "From Brent in dollars",
+      combinedNote: "The middle estimate averages the model driven by actual pump prices and the model driven by crude. The band shown covers the confidence intervals of both.",
+      btTitle: "How accurate has the model been over the last 3 years", btSub: "Pseudo out-of-sample test: re-estimated every month without future data, then the projected change in headline inflation is compared with what happened (percentage points)",
+      btModel: "Model", btH: "Ahead", btRmse: "Typical error (RMSE)", btNaive: "If you guessed no change", btCorr: "Correlation", btMonths: (h) => `${h} months`,
+      btChartTitle: "6 months ahead, projected versus actual (change in headline inflation, percentage points)", btProjected: "Projected", btActual: "Actual",
+      asymNote: (d) => `Splitting rises from falls, a 10% rise in crude moves headline inflation by ${d.up} points after 12 months and a 10% fall by ${d.down} points. The difference is within the estimation error, so one response is used for both directions.`,
       ansPeak: "At the worst point you would pay about", perMonth: "baht more per month", ansYear: "Over the next 12 months", baht: "baht",
       ansInfl: "Headline inflation would run higher than otherwise by", pp: "percentage points",
       inMonth: (m) => `in ${m}`, yearSub: (v) => `If your basket matched the average household: ${v} baht`,
@@ -262,15 +272,16 @@
 
   // ---------------------------------------------------------------- state
   let D = null;
-  const state = { basis: "mtd", shock: "dubai_thb", custom: 20, spend: 24000, shares: null, pumpProduct: "gasohol95", pumpPrice: null, pass: 1, pathOutcome: "headline", irfOutcome: "headline" };
+  const state = { basis: "mtd", shock: "combined", custom: 20, irfModel: "retail_fuel", spend: 24000, shares: null, pumpProduct: "gasohol95", pumpPrice: null, pass: 1, pathOutcome: "headline", irfOutcome: "headline" };
   const $ = (id) => document.getElementById(id);
 
   function shockPct() {
     if (state.basis === "custom") return state.custom;
-    const p = D.projections[state.shock]["observed_" + state.basis]; const s = p.shocks; return s.length ? s[s.length - 1][1] : null;
+    const key = state.shock === "combined" ? D.model.primary_shock : state.shock;
+    const p = D.projections[key]["observed_" + state.basis]; const s = p.shocks; return s.length ? s[s.length - 1][1] : null;
   }
   function pathsFor() {
-    const irfs = D.irfs[state.shock];
+    const irfs = D.irfs[state.shock === "combined" ? D.model.primary_shock : state.shock];
     if (state.basis === "custom") {
       const out = {}; for (const oc in irfs) out[oc] = irfs[oc].map((r) => ({ h: r.h, impact_pp: r.beta * state.custom, lower_pp: r.lower * state.custom, upper_pp: r.upper * state.custom })); return out;
     }
@@ -335,7 +346,7 @@
     const pk = $("aPeak"); pk.textContent = signed(hh.peak, 0); pk.className = dirClass(hh.peak); $("aPeakWhen").textContent = t("inMonth", mLabel(months[hh.peakH - 1], true));
     const yv = $("aYear"); yv.textContent = signed(hh.year1, 0); yv.className = dirClass(hh.year1); $("aYearSub").textContent = t("yearSub", signed(avgYear, 0));
     const iv = $("aInfl"); iv.textContent = signed(headPeak.impact_pp, 2); iv.className = dirClass(headPeak.impact_pp); $("aInflWhen").textContent = t("inMonth", mLabel(months[headPeak.h - 1], true));
-    $("pathSub").textContent = state.basis === "custom" ? t("pathSubCustom", signed(s, 0, "%")) : t("pathSubObserved", signed(s, 1, "%"));
+    $("pathSub").textContent = state.basis === "custom" ? t("pathSubCustom", signed(s, 0, "%")) : (state.shock === "combined" ? t("combinedNote") : t("pathSubObserved", signed(s, 1, "%")));
     $("breakSub").textContent = t("breakSub", num(state.spend));
     // breakdown
     const rows = hh.rows.map((r) => ({ label: cname(r.key), value: r.year1 })).concat([{ label: t("total"), value: hh.year1, total: true }]);
@@ -347,7 +358,7 @@
       n: path.length, xTick: (i) => (i % 3 === 0 ? mTick(months[i]) : null), zero: true,
       series: [{ values: path.map((r) => r.impact_pp), color, dots: true }],
       band: { lower: path.map((r) => r.lower_pp), upper: path.map((r) => r.upper_pp), color }, yFmt: (v) => signed(v, 1), height: 240,
-      tip: (i) => `<b>${mLabel(months[i])}</b><br>${oname(oc)}: ${signed(path[i].impact_pp, 2)} (${signed(path[i].lower_pp, 2)} … ${signed(path[i].upper_pp, 2)})<br>${t("extra")}: ${signed(hh.total[i], 0)}`,
+      tip: (i) => `<b>${mLabel(months[i])}</b><br>${oname(oc)}: ${signed(path[i].impact_pp, 2)} (${signed(path[i].lower_pp, 2)} … ${signed(path[i].upper_pp, 2)})${path[i].retail_pp != null ? `<br>${t("shockRetail")}: ${signed(path[i].retail_pp, 2)}<br>${t("shockDubaiThb")}: ${signed(path[i].crude_pp, 2)}` : ""}<br>${t("extra")}: ${signed(hh.total[i], 0)}`,
     });
     $("pathTable").innerHTML = tableHtml([t("month"), t("impact"), t("low"), t("high"), t("extra")], path.map((r, i) => [mLabel(months[i]), signed(r.impact_pp, 2), signed(r.lower_pp, 2), signed(r.upper_pp, 2), signed(hh.total[i], 0)]));
     renderPump();
@@ -394,17 +405,34 @@
   }
 
   function renderModel() {
-    const irfs = D.irfs[state.shock]; const meta = D.model.samples[`${state.shock}/headline`] || {};
+    const mk = state.irfModel; const irfs = D.irfs[mk]; const meta = D.model.samples[`${mk}/headline`] || {};
     const pk = (oc) => irfs[oc].reduce((a, b) => (b.beta > a.beta ? b : a), irfs[oc][0]);
     const hp = pk("headline"), ep = pk("energy"), fp = pk("food");
     $("modelSummary").textContent = t("modelSummary", { first: mLabel(meta.first || ""), last: mLabel(meta.last || ""), n: meta.n, h1: num(irfs.headline[0].beta * 10, 2), peak: num(hp.beta * 10, 2), peakH: hp.h, energy: num(ep.beta * 10, 1), food: num(fp.beta * 10, 2), foodH: fp.h });
     const oc = state.irfOutcome; const irf = irfs[oc]; const c1 = css("--series-1"), c2 = css("--series-2");
     drawChart($("irfChart"), { n: irf.length, xTick: (i) => (i % 3 === 2 ? t("horizon", irf[i].h) : null), zero: true, height: 230, series: [{ values: irf.map((r) => r.beta * 10), color: c1, dots: true }], band: { lower: irf.map((r) => r.lower * 10), upper: irf.map((r) => r.upper * 10), color: c1 }, yFmt: (v) => signed(v, 1), tip: (i) => `<b>${t("horizon", irf[i].h)}</b><br>${oname(oc)}: ${signed(irf[i].beta * 10, 2)} pp (${signed(irf[i].lower * 10, 2)} … ${signed(irf[i].upper * 10, 2)})<br>n = ${irf[i].n}` });
     $("irfTable").innerHTML = tableHtml([t("month"), t("impact"), t("low"), t("high")], irf.map((r) => [t("horizon", r.h), signed(r.beta * 10, 3), signed(r.lower * 10, 3), signed(r.upper * 10, 3)]));
-    const q = D.data.monthly; const col = D.model.spec && ({ dubai_thb: "shock_dubai_thb", dubai_usd: "shock_dubai_usd", brent_usd: "shock_brent_usd" })[state.shock];
+    const q = D.data.monthly; const col = ({ dubai_thb: "shock_dubai_thb", dubai_usd: "shock_dubai_usd", brent_usd: "shock_brent_usd", retail_fuel: "shock_retail_fuel" })[mk];
+    const asym = D.asymmetric && D.asymmetric.headline;
+    if (asym) { const up = asym.up.find((r) => r.h === 12), dn = asym.down.find((r) => r.h === 12); $("asymNote").textContent = t("asymNote", { up: signed(up.beta * 10, 2), down: signed(dn.beta * -10, 2) }); }
+    renderBacktest();
     const xt = (i) => (q[i].month.endsWith("-01") && (+q[i].month.slice(0, 4)) % 2 === 0 ? (lang === "th" ? String(+q[i].month.slice(0, 4) + 543) : q[i].month.slice(0, 4)) : null);
     drawChart($("cpiChart"), { n: q.length, xTick: xt, zero: true, height: 200, series: [{ values: q.map((r) => r.yoy_headline), color: c1 }, { values: q.map((r) => r.yoy_energy), color: c2 }], legend: [{ color: c1, label: t("cpiLegendHead") }, { color: c2, label: t("cpiLegendEnergy") }], yFmt: (v) => num(v, 0) + "%", tip: (i) => `<b>${mLabel(q[i].month)}</b><br>${t("cpiLegendHead")}: ${signed(q[i].yoy_headline, 2, "%")}<br>${t("cpiLegendEnergy")}: ${signed(q[i].yoy_energy, 1, "%")}` });
     drawChart($("shockChart"), { n: q.length, xTick: xt, zero: true, bars: true, height: 180, series: [{ kind: "bar", values: q.map((r) => r[col]), color: c2 }], legend: [{ color: c2, label: t("shockLegend") }], yFmt: (v) => num(v, 0) + "%", tip: (i) => `<b>${mLabel(q[i].month)}</b><br>${t("shockLegend")}: ${signed(q[i][col], 1, "%")}<br>Dubai ${num(q[i].dubai_usd, 1)} USD, ${num(q[i].dubai_thb_per_litre, 2)} THB/L` });
+  }
+
+  function renderBacktest() {
+    const bt = D.backtests; if (!bt) return;
+    const order = ["combined", "retail_fuel", "dubai_thb"].filter((k) => bt[k]);
+    const names = { combined: t("shockCombined"), retail_fuel: t("shockRetail"), dubai_thb: t("shockDubaiThb") };
+    const rows = [];
+    order.forEach((k) => bt[k].headline.by_h.forEach((r) => rows.push([names[k], t("btMonths", r.h), num(r.rmse, 2), num(r.rmse_no_change, 2), num(r.corr, 2)])));
+    $("btTable").innerHTML = tableHtml([t("btModel"), t("btH"), t("btRmse"), t("btNaive"), t("btCorr")], rows);
+    const r6 = bt.combined ? bt.combined.headline.rows : bt[order[0]].headline.rows; const c1 = css("--series-1"), c2 = css("--series-2");
+    drawChart($("btChart"), { n: r6.length, xTick: (i) => (i % 6 === 0 ? mTick(addMonths(r6[i].origin, 6)) : null), zero: true, height: 220,
+      series: [{ values: r6.map((r) => r.actual), color: c2 }, { values: r6.map((r) => r.projected), color: c1 }],
+      legend: [{ color: c2, label: t("btActual") }, { color: c1, label: t("btProjected") }], yFmt: (v) => signed(v, 1),
+      tip: (i) => `<b>${mLabel(r6[i].origin)} → ${mLabel(addMonths(r6[i].origin, 6))}</b><br>${t("btProjected")}: ${signed(r6[i].projected, 2)}<br>${t("btActual")}: ${signed(r6[i].actual, 2)}` });
   }
 
   function renderSources() {
@@ -415,10 +443,13 @@
   }
 
   function fillOutcomeSelects() {
-    const ocs = Object.keys(D.irfs[state.shock]);
+    const ocs = Object.keys(D.irfs[D.model.primary_shock]);
     for (const [id, key] of [["pathOutcome", "pathOutcome"], ["irfOutcome", "irfOutcome"]]) {
       $(id).innerHTML = ocs.map((o) => `<option value="${o}" ${o === state[key] ? "selected" : ""}>${oname(o)}</option>`).join("");
     }
+    const models = ["retail_fuel", "dubai_thb", "dubai_usd", "brent_usd"].filter((k) => D.irfs[k]);
+    const names = { retail_fuel: t("shockRetail"), dubai_thb: t("shockDubaiThb"), dubai_usd: t("shockDubaiUsd"), brent_usd: t("shockBrentUsd") };
+    $("irfModel").innerHTML = models.map((k) => `<option value="${k}" ${k === state.irfModel ? "selected" : ""}>${names[k]}</option>`).join("");
   }
 
   function renderAll() { applyI18n(); fillOutcomeSelects(); renderBoard(); renderNow(); renderShares(); renderPumpControls(); renderCalc(); renderOil(); renderModel(); renderSources(); }
@@ -427,10 +458,11 @@
   $("langToggle").addEventListener("click", () => { lang = lang === "th" ? "en" : "th"; try { localStorage.setItem("lang", lang); } catch (e) {} if (D) renderAll(); else applyI18n(); });
   $("spend").addEventListener("input", (e) => { state.spend = +e.target.value || 0; if (D) renderCalc(); });
   document.querySelectorAll("input[name=basis]").forEach((r) => r.addEventListener("change", (e) => { state.basis = e.target.value; $("customRow").hidden = state.basis !== "custom"; if (D) renderCalc(); }));
-  document.querySelectorAll("input[name=shock]").forEach((r) => r.addEventListener("change", (e) => { state.shock = e.target.value; if (D) { fillOutcomeSelects(); renderCalc(); renderModel(); } }));
+  document.querySelectorAll("input[name=shock]").forEach((r) => r.addEventListener("change", (e) => { state.shock = e.target.value; if (D) renderCalc(); }));
   $("shockSlider").addEventListener("input", (e) => { state.custom = +e.target.value; $("shockOut").textContent = signed(state.custom, 0, "%"); if (D) renderCalc(); });
   $("pathOutcome").addEventListener("change", (e) => { state.pathOutcome = e.target.value; if (D) renderCalc(); });
   $("irfOutcome").addEventListener("change", (e) => { state.irfOutcome = e.target.value; if (D) renderModel(); });
+  $("irfModel").addEventListener("change", (e) => { state.irfModel = e.target.value; if (D) renderModel(); });
   $("pumpProduct").addEventListener("change", (e) => { state.pumpProduct = e.target.value; state.pumpPrice = D.retail.prices[state.pumpProduct]; $("pumpPrice").value = state.pumpPrice; renderPump(); });
   $("pumpPrice").addEventListener("input", (e) => { state.pumpPrice = +e.target.value || 0; if (D) renderPump(); });
   $("pumpPass").addEventListener("change", (e) => { state.pass = +e.target.value; if (D) renderPump(); });

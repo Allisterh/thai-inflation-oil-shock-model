@@ -15,6 +15,8 @@
       resultLeadDown: "จากราคาน้ำมันที่ลดลงมาแล้ว ครอบครัวคุณน่าจะจ่ายน้อยลง",
       when: (m) => `หนักที่สุดราวเดือน${m} แล้วค่อย ๆ เบาลง`,
       year: (v) => `รวม 12 เดือนข้างหน้า ประมาณ ${v} บาท`,
+      range: (d) => `ช่วงที่น่าจะเป็น ${d.lo} ถึง ${d.hi} บาทต่อเดือน เราคำนวณสองแบบ แบบหนึ่งดูจากราคาหน้าปั๊มที่ขึ้นมาแล้วจริง (${d.retail}) อีกแบบดูจากน้ำมันดิบ (${d.crude}) แล้วเอาค่ากลาง`,
+      accuracy: (d) => `ในช่วง 3 ปีที่ผ่านมา ค่าประมาณล่วงหน้า 6 เดือนของเรามักคลาดเคลื่อนราว ${d.rmse} จุดเปอร์เซ็นต์ของเงินเฟ้อ เทียบกับ ${d.naive} จุดถ้าเดาว่าไม่มีอะไรเปลี่ยน`,
       whereTitle: "เงินที่เพิ่มไปอยู่ที่ไหนบ้าง (รวม 12 เดือน)",
       cat: { vehicles_fuel: "น้ำมันรถและค่าดูแลรถ", electricity_fuel_water: "ค่าไฟ ก๊าซหุงต้ม น้ำประปา", public_transport: "ค่ารถสาธารณะ", food: "อาหาร", other: "ของอื่น ๆ" },
       plain: (d) => `เทียบง่าย ๆ คือของทุกอย่างแพงขึ้นเฉลี่ยประมาณ ${d.pp}% มากกว่าที่ควรจะเป็น ถ้าไม่มีน้ำมันขึ้นราคา น้ำมันรถจะรู้สึกก่อนภายใน 1 ถึง 2 เดือน ส่วนอาหารและของอื่น ๆ จะค่อย ๆ ตามมาในช่วงครึ่งปีถึงหนึ่งปี`,
@@ -43,6 +45,8 @@
       resultLeadDown: "Because of the oil price fall that has already happened, your household will likely pay less by about",
       when: (m) => `Worst around ${m}, then it eases.`,
       year: (v) => `About ${v} baht over the next 12 months.`,
+      range: (d) => `Likely range ${d.lo} to ${d.hi} baht per month. We estimate it two ways, one from the pump prices that have already risen (${d.retail}) and one from crude oil (${d.crude}), and show the middle.`,
+      accuracy: (d) => `Over the last 3 years our 6-month-ahead estimate has typically been off by about ${d.rmse} percentage points of inflation, against ${d.naive} points if you assumed nothing would change.`,
       whereTitle: "Where the extra money goes (12 months)",
       cat: { vehicles_fuel: "Fuel and running a car", electricity_fuel_water: "Electricity, cooking gas, water", public_transport: "Public transport", food: "Food", other: "Everything else" },
       plain: (d) => `Put simply, everything costs about ${d.pp}% more than it otherwise would. You feel it at the pump within a month or two; food and other goods follow over six months to a year.`,
@@ -120,12 +124,16 @@
     chips($("spendChips"), SPEND_OPTIONS.map((v) => [num(v), v]), state.spend, (v) => { state.spend = v; $("spend").value = v; });
     chips($("travelChips"), [[t("travelCar"), "car"], [t("travelMixed"), "mixed"], [t("travelPublic"), "public"]], state.travel, (v) => { state.travel = v; });
     // main answer: observed shocks, month-to-date basis
-    const key = D.model.primary_shock; const paths = D.projections[key].observed_mtd.paths; const hh = household(paths);
+    const key = D.projections.combined ? "combined" : D.model.primary_shock; const paths = D.projections[key].observed_mtd.paths; const hh = household(paths);
+    const hhR = D.projections.retail_fuel ? household(D.projections.retail_fuel.observed_mtd.paths) : null;
+    const hhC = household(D.projections[D.model.primary_shock].observed_mtd.paths);
     const months = Array.from({ length: 24 }, (_, i) => addMonths(c.month, i + 1));
     document.querySelector(".result-lead").textContent = hh.peak >= 0 ? t("resultLead") : t("resultLeadDown");
     const big = $("rPeak"); big.textContent = num(round10(Math.abs(hh.peak))); big.className = hh.peak >= 0 ? "up" : "down";
     $("rWhen").textContent = t("when", mLabel(months[hh.peakH - 1]));
     $("rYear").textContent = t("year", signed(round10(hh.year1), 0));
+    if (hhR) { const a = hhR.total[hh.peakH - 1], b = hhC.total[hh.peakH - 1]; $("rRange").textContent = t("range", { lo: num(round10(Math.min(a, b))), hi: num(round10(Math.max(a, b))), retail: num(round10(a)), crude: num(round10(b)) }); }
+    const bt = D.backtests && (D.backtests.combined || D.backtests[D.model.primary_shock]); if (bt) { const r = bt.headline.by_h.find((x) => x.h === 6); if (r) $("rAccuracy").textContent = t("accuracy", { rmse: num(r.rmse, 1), naive: num(r.rmse_no_change, 1) }); }
     const maxAbs = Math.max(1, ...hh.cats.map((x) => Math.abs(x.year1)));
     $("whereBars").innerHTML = `<div class="hbars">${hh.cats.map((x) => `<div class="row"><span>${t("cat")[x.key]}</span><div class="track" style="${x.year1 < 0 ? "justify-content:flex-end" : ""}"><div class="fill ${x.year1 < 0 ? "neg" : ""}" style="width:${Math.abs(x.year1) / maxAbs * 100}%"></div></div><span class="val">${signed(round10(x.year1), 0)}</span></div>`).join("")}</div>`;
     const head = paths.headline; const hp = head.reduce((a, b) => (Math.abs(b.impact_pp) > Math.abs(a.impact_pp) ? b : a), head[0]);
@@ -136,7 +144,7 @@
     const perL = nc.dubai_spot_nowcast_thb / 158.987; const dPump = perL * (Math.exp(state.whatif / 100) - 1) * 1.07;
     $("whatifAnswer").textContent = t("whatif", { dir: (state.whatif > 0 ? t("up") : t("down")) + (lang === "th" ? ` ${num(Math.abs(state.whatif))}%` : ` ${num(Math.abs(state.whatif))}%`), more: sc.peak >= 0 ? t("moreWord") : t("lessWord"), peak: num(round10(Math.abs(sc.peak))), pump: num(Math.abs(dPump), 1), pumpDir: dPump >= 0 ? t("pumpUp") : t("pumpDown") });
     // why
-    const irfs = D.irfs[key]; const pk = (oc) => irfs[oc].reduce((a, b) => (b.beta > a.beta ? b : a), irfs[oc][0]);
+    const irfs = D.irfs[D.model.primary_shock]; const pk = (oc) => irfs[oc].reduce((a, b) => (b.beta > a.beta ? b : a), irfs[oc][0]);
     const yoy = c.dubai_thb_yoy_pct;
     $("whyList").innerHTML = [t("why1", { dir: yoy >= 0 ? (lang === "th" ? "แพงขึ้น" : "up") : (lang === "th" ? "ถูกลง" : "down"), pct: num(Math.abs(yoy), 0) + "%" }), t("why2", { energy: num(pk("energy").beta * 10, 1), head: num(pk("headline").beta * 10, 1) }), t("why3")].map((x) => `<li>${x}</li>`).join("");
     $("footSources").textContent = t("foot", (D.generated_at || "").slice(0, 10));

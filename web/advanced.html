@@ -66,9 +66,11 @@
         </details>
         <details class="advanced">
           <summary data-i18n="advanced">ตัวเลือกแบบจำลอง</summary>
-          <label class="radio"><input type="radio" name="shock" value="dubai_thb" checked><span data-i18n="shockDubaiThb">น้ำมันดิบดูไบเป็นบาท (ค่าเริ่มต้น รวมผลค่าเงิน)</span></label>
-          <label class="radio"><input type="radio" name="shock" value="dubai_usd"><span data-i18n="shockDubaiUsd">น้ำมันดิบดูไบเป็นดอลลาร์</span></label>
-          <label class="radio"><input type="radio" name="shock" value="brent_usd"><span data-i18n="shockBrentUsd">เบรนท์เป็นดอลลาร์</span></label>
+          <label class="radio"><input type="radio" name="shock" value="combined" checked><span data-i18n="shockCombined">ค่ากลางของสองแบบจำลอง (ค่าเริ่มต้น)</span></label>
+          <label class="radio"><input type="radio" name="shock" value="retail_fuel"><span data-i18n="shockRetail">จากราคาหน้าปั๊มจริง (รวมการพยุงของรัฐแล้ว)</span></label>
+          <label class="radio"><input type="radio" name="shock" value="dubai_thb"><span data-i18n="shockDubaiThb">จากน้ำมันดิบดูไบเป็นบาท</span></label>
+          <label class="radio"><input type="radio" name="shock" value="dubai_usd"><span data-i18n="shockDubaiUsd">จากน้ำมันดิบดูไบเป็นดอลลาร์</span></label>
+          <label class="radio"><input type="radio" name="shock" value="brent_usd"><span data-i18n="shockBrentUsd">จากเบรนท์เป็นดอลลาร์</span></label>
         </details>
       </div>
       <div class="answers">
@@ -130,9 +132,16 @@
     <p class="muted" id="modelSummary"></p>
     <figure class="chart-block">
       <figcaption><span class="chart-title" data-i18n="irfTitle">ถ้าน้ำมันดิบแพงขึ้น 10% ดัชนีแต่ละตัวเปลี่ยนกี่จุดในแต่ละเดือนถัดไป</span><span class="chart-sub" data-i18n="irfSub">เส้นคือค่าประมาณ แถบคือช่วงความเชื่อมั่น 95%</span></figcaption>
-      <div class="chart-controls"><label><span data-i18n="pathSeries">ดัชนี</span> <select id="irfOutcome"></select></label></div>
+      <div class="chart-controls"><label><span data-i18n="btModel">แบบจำลอง</span> <select id="irfModel"></select></label><label><span data-i18n="pathSeries">ดัชนี</span> <select id="irfOutcome"></select></label></div>
       <div class="chart" id="irfChart" role="img"></div>
       <details class="table-view"><summary data-i18n="tableView">ดูเป็นตาราง</summary><div id="irfTable"></div></details>
+    </figure>
+    <p class="muted" id="asymNote"></p>
+    <figure class="chart-block">
+      <figcaption><span class="chart-title" data-i18n="btTitle">แบบจำลองแม่นแค่ไหนในช่วง 3 ปีที่ผ่านมา</span><span class="chart-sub" data-i18n="btSub">ทดสอบย้อนหลังแบบไม่ใช้ข้อมูลอนาคต</span></figcaption>
+      <div class="table-view open"><div id="btTable"></div></div>
+      <p class="chart-sub" data-i18n="btChartTitle" style="margin-top:12px">ทำนายล่วงหน้า 6 เดือน เทียบกับที่เกิดจริง</p>
+      <div class="chart" id="btChart" role="img"></div>
     </figure>
     <figure class="chart-block">
       <figcaption><span class="chart-title" data-i18n="histTitle">ข้อมูลที่ใช้ประมาณ ตั้งแต่ปี 2543</span></figcaption>

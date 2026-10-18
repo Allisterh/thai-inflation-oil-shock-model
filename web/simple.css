@@ -34,3 +34,5 @@ body.simple h2 { font-size: 1.25rem; margin-top: 1.4em; }
 .more { font-weight: 600; }
 .back { font-size: .9rem; margin-right: 12px; }
 .top-actions { display: flex; align-items: center; }
+.result-range { margin: 0 0 18px; color: var(--ink-2); font-size: .95rem; max-width: 60ch; }
+.result-year { margin-bottom: 6px; }

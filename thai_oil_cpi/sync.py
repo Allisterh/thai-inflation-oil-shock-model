@@ -363,6 +363,14 @@ def build_dataset(status: dict | None = None) -> Dataset:
         for col in ("gasohol95", "gasohol91", "diesel_b7", "ulg95"):
             if col in retail_m:
                 df[f"retail_{col}"] = retail_m[col]
+        # Retail road-fuel price index: diesel B7 and gasoline (gasohol 95, ULG95 before gasohol existed),
+        # volume-weighted, chained in logs. This is what households actually pay and it already
+        # embeds Oil Fund cushioning and tax changes.
+        gasoline = retail_m["gasohol95"].combine_first(retail_m["ulg95"]) if "ulg95" in retail_m else retail_m["gasohol95"]
+        rf = pd.DataFrame({"diesel": retail_m["diesel_b7"], "gasoline": gasoline}).dropna()
+        w = C.RETAIL_FUEL_WEIGHTS
+        df["retail_fuel_thb_per_litre"] = (w["diesel"] * rf["diesel"] + w["gasoline"] * rf["gasoline"]).reindex(df.index)
+        df["shock_retail_fuel"] = 100 * (w["diesel"] * np.log(rf["diesel"]).diff() + w["gasoline"] * np.log(rf["gasoline"]).diff()).reindex(df.index)
 
     # Nowcast: months after the last Pink Sheet month, from daily Brent × latest Dubai/Brent ratio.
     nowcast: dict = {"months": []}
@@ -387,6 +395,40 @@ def build_dataset(status: dict | None = None) -> Dataset:
         nowcast["dubai_spot_nowcast_thb"] = float(brent_d.iloc[-1]) * ratio * float(fx_d.iloc[-1])
     if fx_note:
         nowcast["fx_note"] = fx_note
+
+    # Retail fuel nowcast: months after the last Table 9 month, from EPPO daily snapshots (PTT Bangkok prices).
+    # Months without snapshots are interpolated in logs between the last known month and the first snapshot month.
+    if retail_m is not None and "retail_fuel_thb_per_litre" in df:
+        last_rm = df["retail_fuel_thb_per_litre"].dropna().index[-1]
+        last_level = float(df.loc[last_rm, "retail_fuel_thb_per_litre"])
+        snaps = {}
+        if retail_d is not None and len(retail_d):
+            rd = retail_d.copy(); rd["month"] = pd.to_datetime(rd["date"]).dt.to_period("M")
+            w = C.RETAIL_FUEL_WEIGHTS
+            rd["fuel"] = w["diesel"] * rd["diesel_b7"] + w["gasoline"] * rd["gasohol95"]
+            snaps = rd.groupby("month")["fuel"].mean().to_dict()
+        months = list(pd.period_range(last_rm + 1, this_month, freq="M"))
+        known = {m: snaps[m] for m in months if m in snaps and not math.isnan(snaps[m])}
+        rec = []
+        if known:
+            first_known = min(known); prev_m, prev_v = last_rm, last_level
+            for m in months:
+                if m in known:
+                    v = known[m]; interp = False
+                elif m < first_known:
+                    frac = (m - last_rm).n / (first_known - last_rm).n
+                    v = math.exp(math.log(last_level) + frac * (math.log(known[first_known]) - math.log(last_level))); interp = True
+                else:
+                    v = prev_v; interp = True
+                rec.append({"month": str(m), "retail_fuel_thb_per_litre": v, "interpolated": interp, "partial": m == this_month,
+                            "days": int((rd["month"] == m).sum()) if m in known else 0})
+                prev_v = v
+        nowcast["retail_months"] = rec
+        nowcast["retail_last_month"] = str(last_rm)
+        nowcast["retail_last_level"] = last_level
+        if retail_d is not None and len(retail_d):
+            last_row = retail_d.sort_values("date").iloc[-1]
+            nowcast["retail_latest"] = {"date": last_row["date"], "gasohol95": float(last_row["gasohol95"]), "diesel_b7": float(last_row["diesel_b7"])}
 
     return Dataset(monthly=df, cpi_long=cpi_long, weights=weights, brent_daily=brent_d, usdthb_daily=fx_d,
                    retail_daily=retail_d, price_structure=structure, nowcast=nowcast, status=status)

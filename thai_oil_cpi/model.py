@@ -4,7 +4,7 @@ from __future__ import annotations
 import pandas as pd
 
 from . import config as C
-from .lp import LPSpec, local_projections
+from .lp import LPSpec, local_projections, local_projections_asymmetric
 from .sync import Dataset
 
 
@@ -36,6 +36,8 @@ def estimate_all(ds: Dataset, spec: LPSpec | None = None, sample_start: str = C.
                 continue
             irf = local_projections(sample[ycol], sample[col], spec)
             out[key][oc] = irf
+            if key == C.PRIMARY_SHOCK:
+                out.setdefault("_asymmetric", {})[oc] = local_projections_asymmetric(sample[ycol], sample[col], spec)
             out["_meta"]["samples"][f"{key}/{oc}"] = {"first": str(sample.index[0]), "last": str(sample.index[-1]), "n": int(len(sample))}
     return out
 
