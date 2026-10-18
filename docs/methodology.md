@@ -106,41 +106,46 @@ For example, if β_1 = 0.072, then a 10% oil price shock implies:
 
 - Newey, W. K., & West, K. D. (1987). A simple, positive semi-definite, heteroskedasticity and autocorrelation consistent covariance matrix. *Econometrica*, 55(3), 703–708.
 
-## Live pipeline (added with the web app)
+## Version 2: monthly model on official Thai data
 
-The notebook's specification is implemented in `thai_oil_cpi/lp.py` and re-estimated by `python -m thai_oil_cpi run` every time the data is synced. `tests/test_lp.py` checks that the estimator reproduces the originally published IRF on the original sample to 1e-8.
+The quarterly specification above is the original exploration and is preserved in the notebook. The live pipeline now estimates a monthly version on official sources.
 
-### Daily data → quarterly shocks
+### Data
 
-Daily Brent closes are averaged within each calendar quarter. Only complete quarters enter the estimation sample. For the current, incomplete quarter two shocks are computed for projection purposes:
+| Series | Source | Notes |
+|---|---|---|
+| CPI, all categories, with weights | TPSO Index API (`index.tpso.go.th/api/cpig/filter`, documented at tpso.go.th/indexAPI_Manual) | base 2566 = 2023, chained back to 1976; sub-indices for energy, vehicles and fuel, electricity/fuel/water, public transport, food, raw food, core |
+| Dubai, Brent, WTI monthly | World Bank Pink Sheet (`CMO-Historical-Data-Monthly.xlsx`, URL discovered from the commodity-markets page) | IMF PCPS via DBnomics as fallback |
+| Brent spot daily | EIA `RBRTEd.xls` | ICE futures (Yahoo `BZ=F`) as fallback; spot is used because the Pink Sheet's Brent and Dubai are spot assessments |
+| USD/THB monthly | IMF IFS `ENDA_XDC_USD_RATE` via DBnomics, extended with Yahoo daily averages | overlap agrees within 0.25% |
+| Pump prices and price structure | EPPO `wp-json/oil-api/v1/oil-prices`, `oil-structure-prices` | daily snapshots accumulate in the cache |
+| Retail history | EPPO Table 9 (`P09.xls`) | monthly weighted averages since 2003 |
+
+### Shock and outcomes
 
 ```
-shock_qtd  = 100 × ln( mean(Brent, quarter to date) / mean(Brent, previous quarter) )
-shock_spot = 100 × ln( latest Brent close            / mean(Brent, previous quarter) )
+shock_t = 100 × [ln(Dubai_t × FX_t) − ln(Dubai_{t−1} × FX_{t−1})]       (monthly averages)
+y_t     = 100 × (CPI_t / CPI_{t−12} − 1)                                 for each index
 ```
 
-### From impulse responses to a projected path
+### Specification
 
-Besides the one-off scenario `Impact(h, s) = β_h × s`, the app shows the path implied by shocks that have already happened. With the current quarter as t and the estimated horizons h = 1…8, the oil-driven contribution to YoY inflation j quarters ahead is
+For each outcome and horizon h = 1 … 24 months:
 
 ```
-Δπ_{t+j} = Σ_{k ≥ 0, j+k ≤ 8} β_{j+k} × shock_{t−k}
+y_{t+h} = α_h + β_h shock_t + Σ_{k=1}^{12} γ_k y_{t−k} + Σ_{k=1}^{12} δ_k shock_{t−k} + ε_{t+h}
 ```
 
-i.e. each past shock is carried forward along its own impulse response. The confidence band treats the β_h as independent (variance = Σ (se_{j+k} × shock_{t−k})²), which ignores their covariance and is therefore approximate.
+with Newey–West standard errors, maxlags = h + 1, on the sample from January 2000 (configurable). With roughly 320 observations the bands are far tighter than in the 31-quarter version.
 
-### Household figures
+### Nowcasting the current month
 
-Extra spending per month in horizon quarter h is `monthly spend × Δπ_h / 100`. The 12-month total counts three months per quarter for h = 1…4. This treats a household's basket as the CPI basket; households with heavier fuel and transport shares are affected more.
+Dubai for months after the last Pink Sheet release is estimated as the monthly average of daily Brent spot times the Dubai/Brent ratio of the latest published month, converted at the monthly average of daily USD/THB. Two conventions are shown: the month-to-date average, and today's price held for the rest of the month.
 
-### Pump price helper
+### From impulse responses to household baht
 
-Crude cost per litre is `Brent (USD/bbl) × USD/THB ÷ 158.987`. Thai retail prices add excise, municipal tax, the Oil Fund levy, marketing margin and VAT, which are mostly fixed per litre, so the change at the pump is approximated by the change in crude cost times a user-chosen pass-through share (1.0 for gasohol, lower for diesel while the Oil Fund caps it). It is a rule of thumb, not a model of the Thai fuel price structure.
+The oil-driven contribution to each index j months ahead sums the last 24 monthly shocks (including the nowcast) along the impulse response: Δy_{t+j} = Σ_k β_{j+k} shock_{t−k}. The household's extra spending per month in category c is spend × share_c × Δy_{c,t+j} / 100, with shares defaulting to the CPI weights (vehicles and fuel 15.9%, electricity/fuel/water 5.2%, public transport 1.6%, food 39.5%, everything else via core inflation). The 12-month total sums the first twelve months.
 
-### Baht-denominated variant
+### Pump prices
 
-A second IRF is estimated with `100 × Δlog(Brent × USD/THB)` as the shock so that exchange-rate moves are included. Both variants are in `web/data/latest.json`; the app defaults to the USD shock to stay comparable with the published results.
-
-### CPI feed validation
-
-External monthly CPI feeds are accepted only if their quarterly averages agree with the curated quarterly series within 0.25% over the last four overlapping quarters. This guards against aggregator feeds that splice different base years (the IMF series on DBnomics currently fails this test for 2022–2024).
+EPPO's price build-up gives, per product, the ex-refinery price, excise, municipal tax, Oil Fund and conservation fund levies, marketing margin and VAT. The levies and margin are fixed baht per litre, so the pump price moves with the ex-refinery price times 1.07 (VAT). The app applies the selected crude move per litre, times a user-chosen pass-through share representing Oil Fund cushioning.

@@ -12,14 +12,14 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 
-from .config import CONF_Z, HAC_EXTRA_LAGS, HORIZONS, LAGS_X, LAGS_Y
+from .config import CONF_Z, HAC_EXTRA_LAGS, HORIZONS_Q, LAGS_Q
 
 
 @dataclass
 class LPSpec:
-    horizons: list[int] = field(default_factory=lambda: list(HORIZONS))
-    lags_y: int = LAGS_Y
-    lags_x: int = LAGS_X
+    horizons: list[int] = field(default_factory=lambda: list(HORIZONS_Q))
+    lags_y: int = LAGS_Q
+    lags_x: int = LAGS_Q
     hac_extra_lags: int = HAC_EXTRA_LAGS
     conf_z: float = CONF_Z
 

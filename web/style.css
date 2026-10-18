@@ -168,3 +168,38 @@ input[type=number]:focus, select:focus, input[type=range]:focus-visible, .lang:f
 @media (prefers-reduced-motion: no-preference) {
   .tile-value { transition: color .2s; }
 }
+
+/* ---- v2 additions ---- */
+.tiles-6 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 640px) { .tiles-6 { grid-template-columns: repeat(2, 1fr); } }
+.h2-sub { font-family: var(--font-body); font-weight: 400; color: var(--ink-2); font-size: 1rem; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.stat { background: var(--surface); border: 1px solid var(--grid); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; }
+.stat-label { color: var(--ink-2); font-size: .88rem; }
+.stat-value { font-weight: 600; font-size: 1.5rem; line-height: 1.2; margin: 4px 0 2px; }
+.stat-sub { color: var(--muted); font-size: .82rem; }
+.hint { color: var(--muted); font-size: .85rem; margin: 6px 0 8px; }
+.shares { display: grid; grid-template-columns: 1fr; gap: 8px; }
+.share-row { display: grid; grid-template-columns: 1fr 110px 56px; gap: 10px; align-items: center; font-size: .92rem; }
+.share-row input[type=range] { width: 100%; accent-color: var(--accent); }
+.share-row output { text-align: right; font-variant-numeric: tabular-nums; }
+.chart-controls { display: flex; gap: 16px; margin: 0 0 8px; font-size: .9rem; color: var(--ink-2); }
+.chart-controls select { font: inherit; color: var(--ink); background: var(--page); border: 1px solid var(--axis); border-radius: var(--radius); padding: 4px 8px; }
+.pump-grid { grid-template-columns: 1fr 1fr 1fr 1.4fr; }
+@media (max-width: 720px) { .pump-grid { grid-template-columns: 1fr; } }
+.struct { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.struct td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+.struct td:nth-child(2) { width: 46%; }
+.struct td:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.struct .bar { height: 10px; border-radius: 0 4px 4px 0; background: var(--series-1); }
+.struct .bar.neg { background: var(--series-2); border-radius: 4px 0 0 4px; margin-left: auto; }
+.struct .bar-wrap { display: flex; width: 100%; }
+.struct .bar-wrap.neg { justify-content: flex-end; }
+.struct tr.total td { font-weight: 600; border-bottom: 0; }
+.hbars .row { display: grid; grid-template-columns: minmax(120px, 34%) 1fr 90px; gap: 10px; align-items: center; margin: 6px 0; font-size: .92rem; }
+.hbars .track { height: 14px; display: flex; }
+.hbars .fill { height: 100%; border-radius: 0 4px 4px 0; background: var(--series-1); min-width: 0; }
+.hbars .fill.neg { background: var(--series-2); border-radius: 4px 0 0 4px; }
+.hbars .val { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.hbars .row.total { border-top: 1px solid var(--grid); padding-top: 6px; }

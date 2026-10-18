@@ -10,42 +10,46 @@ CACHE_DIR = DATA_DIR / "cache"
 RESULTS_DIR = ROOT / "results"
 WEB_DIR = ROOT / "web"
 WEB_DATA_DIR = WEB_DIR / "data"
-
-# Curated seed series shipped with the repository (quarterly, hand-checked).
-SEED_BRENT_XLSX = DATA_DIR / "brent_quarterly.xlsx"
-SEED_CPI_XLSX = DATA_DIR / "thai_cpi_quarterly.xlsx"
-# Optional manual monthly CPI file the maintainer can keep current from the
-# Ministry of Commerce (TPSO) monthly release. Columns: date (YYYY-MM), value.
-MANUAL_CPI_CSV = DATA_DIR / "thai_cpi_monthly_manual.csv"
-
-# Cache files written by the sync step.
-BRENT_DAILY_CSV = CACHE_DIR / "brent_daily.csv"
-USDTHB_DAILY_CSV = CACHE_DIR / "usdthb_daily.csv"
-CPI_MONTHLY_CSV = CACHE_DIR / "thai_cpi_monthly.csv"
-SYNC_STATUS_JSON = CACHE_DIR / "sync_status.json"
-
 LATEST_JSON = WEB_DATA_DIR / "latest.json"
 
-# Local-projection specification (matches notebooks/analysis.ipynb).
-HORIZONS = list(range(1, 9))
-LAGS_Y = 4
-LAGS_X = 4
-HAC_EXTRA_LAGS = 1  # maxlags = h + HAC_EXTRA_LAGS
+# Legacy curated quarterly files (kept for the original notebook and as a cross-check).
+SEED_BRENT_XLSX = DATA_DIR / "brent_quarterly.xlsx"
+SEED_CPI_XLSX = DATA_DIR / "thai_cpi_quarterly.xlsx"
+
+# Cache files written by the sync step.
+TPSO_CPI_CSV = CACHE_DIR / "tpso_cpi_long.csv"
+TPSO_MASTER_JSON = CACHE_DIR / "tpso_master.json"
+PINK_SHEET_CSV = CACHE_DIR / "worldbank_crude_monthly.csv"
+IMF_FX_CSV = CACHE_DIR / "imf_usdthb_monthly.csv"
+BRENT_DAILY_CSV = CACHE_DIR / "brent_daily.csv"
+USDTHB_DAILY_CSV = CACHE_DIR / "usdthb_daily.csv"
+EPPO_RETAIL_HISTORY_CSV = CACHE_DIR / "eppo_retail_monthly.csv"
+EPPO_RETAIL_DAILY_CSV = CACHE_DIR / "eppo_retail_daily.csv"
+EPPO_STRUCTURE_JSON = CACHE_DIR / "eppo_price_structure.json"
+EPPO_STRUCTURE_HISTORY_CSV = CACHE_DIR / "eppo_price_structure_history.csv"
+SYNC_STATUS_JSON = CACHE_DIR / "sync_status.json"
+
+# Monthly local-projection specification.
+SAMPLE_START = os.environ.get("THAI_OIL_CPI_SAMPLE_START", "2000-01")
+HORIZONS_M = list(range(1, 25))
+LAGS_M = 12
+# Legacy quarterly specification (notebooks/analysis.ipynb).
+HORIZONS_Q = list(range(1, 9))
+LAGS_Q = 4
+HAC_EXTRA_LAGS = 1
 CONF_Z = 1.96
+
+# Outcomes (TPSO series names from sources.tpso.CODES) and shock variants.
+OUTCOMES = ["headline", "energy", "vehicles_fuel", "electricity_fuel_water", "public_transport", "food", "core"]
+SHOCKS = {"dubai_thb": "shock_dubai_thb", "dubai_usd": "shock_dubai_usd", "brent_usd": "shock_brent_usd"}
+PRIMARY_SHOCK = "dubai_thb"
 
 # Sync behaviour.
 DEFAULT_MAX_AGE_HOURS = float(os.environ.get("THAI_OIL_CPI_MAX_AGE_HOURS", "12"))
 HTTP_TIMEOUT = 60
-USER_AGENT = "thai-oil-cpi-model/1.0 (+https://github.com/thaileetrakul27/thai-inflation-oil-shock-model)"
+USER_AGENT = ("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36 "
+              "thai-oil-cpi-model/2.0 (+https://github.com/thaileetrakul27/thai-inflation-oil-shock-model)")
 
-# Validation tolerance for external CPI feeds: the last N overlapping quarters
-# must agree with the curated series within TOL percent, otherwise the feed is
-# rejected (guards against base-year vintage mixing in aggregator feeds).
-CPI_VALIDATION_QUARTERS = 4
-CPI_VALIDATION_TOL_PCT = 0.25
-
-# Daily history kept in the web payload.
 WEB_DAILY_DAYS = 500
-
-# Physical / financial constants for the pump-price helper.
 LITRES_PER_BARREL = 158.987
+VAT_RATE = 0.07

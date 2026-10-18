@@ -1,8 +1,6 @@
 """FastAPI backend: serves the web app and a small JSON API.
 
 Run with ``python -m thai_oil_cpi serve`` (or ``uvicorn thai_oil_cpi.app:app``).
-The payload is rebuilt from the cache on startup and refreshed in the
-background on a timer, so the page always reflects the latest synced oil price.
 """
 from __future__ import annotations
 
@@ -19,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import config as C
 from .pipeline import run
-from .projection import household_costs, pump_price_change, scenario_path
+from .projection import household_breakdown, pump_price_change, scenario_path
 
 log = logging.getLogger("thai_oil_cpi")
 _state: dict = {"payload": None, "lock": threading.Lock()}
@@ -33,12 +31,11 @@ def _load_or_build(sync: bool) -> dict:
         else:
             try:
                 payload = run(sync=sync)
-            except Exception as exc:  # keep serving the previous payload
+            except Exception as exc:
                 log.exception("refresh failed: %s", exc)
-                if C.LATEST_JSON.exists():
-                    payload = json.loads(C.LATEST_JSON.read_text())
-                else:
+                if not C.LATEST_JSON.exists():
                     raise
+                payload = json.loads(C.LATEST_JSON.read_text())
         _state["payload"] = payload
         return payload
 
@@ -48,7 +45,6 @@ async def _refresh_loop():
         await asyncio.sleep(REFRESH_HOURS * 3600)
         try:
             await asyncio.to_thread(_load_or_build, True)
-            log.info("background refresh complete")
         except Exception as exc:
             log.warning("background refresh failed: %s", exc)
 
@@ -58,15 +54,13 @@ async def lifespan(app: FastAPI):
     try:
         await asyncio.to_thread(_load_or_build, True)
     except Exception as exc:
-        log.warning("initial sync failed, serving cached payload if present: %s", exc)
-        if C.LATEST_JSON.exists():
-            _state["payload"] = json.loads(C.LATEST_JSON.read_text())
+        log.warning("initial sync failed: %s", exc)
     task = asyncio.create_task(_refresh_loop())
     yield
     task.cancel()
 
 
-app = FastAPI(title="Thai oil-shock → cost of living", version="1.0", lifespan=lifespan)
+app = FastAPI(title="Thai oil-shock → cost of living", version="2.0", lifespan=lifespan)
 
 
 def _payload() -> dict:
@@ -83,35 +77,43 @@ def api_latest():
 @app.get("/api/status")
 def api_status():
     p = _payload()
-    return {"generated_at": p["generated_at"], "current": p["current"], "sources": p["sources"]}
+    return {"generated_at": p["generated_at"], "current": p["current"], "cpi_latest": p["cpi_latest"], "sources": p["sources"]}
 
 
 @app.post("/api/refresh")
 def api_refresh(force: bool = False):
-    payload = _load_or_build(sync=True) if not force else run(sync=True, force=True)
+    payload = run(sync=True, force=force)
     _state["payload"] = payload
     return {"generated_at": payload["generated_at"], "sources": payload["sources"]}
 
 
 @app.get("/api/project")
 def api_project(
-    shock_pct: float = Query(..., ge=-80, le=200, description="Oil price change in %"),
+    shock_pct: float = Query(..., ge=-80, le=200, description="Oil price change in % (log points)"),
     monthly_spend_thb: float = Query(24000, ge=0),
-    shock_currency: str = Query("usd", pattern="^(usd|thb)$"),
+    shock: str = Query(C.PRIMARY_SHOCK, pattern="^(dubai_thb|dubai_usd|brent_usd)$"),
+    share_vehicles_fuel: float | None = Query(None, ge=0, le=1),
+    share_electricity_fuel_water: float | None = Query(None, ge=0, le=1),
+    share_public_transport: float | None = Query(None, ge=0, le=1),
+    share_food: float | None = Query(None, ge=0, le=1),
     pump_pass_through: float = Query(1.0, ge=0, le=1.5),
 ):
     p = _payload()
-    proj = p["projections"].get(shock_currency) or p["projections"]["usd"]
-    irf = pd.DataFrame(proj["irf"])
-    path = scenario_path(irf, shock_pct)
-    cur = p["current"]
-    brent = cur.get("brent_latest")
-    fx = cur.get("usdthb_latest")
+    irfs = {oc: pd.DataFrame(rows) for oc, rows in p["irfs"][shock].items()}
+    paths = {oc: scenario_path(irf, shock_pct) for oc, irf in irfs.items()}
+    shares = dict(p["default_shares"])
+    for k, v in (("vehicles_fuel", share_vehicles_fuel), ("electricity_fuel_water", share_electricity_fuel_water),
+                 ("public_transport", share_public_transport), ("food", share_food)):
+        if v is not None:
+            shares[k] = v
+    shares["other"] = max(0.0, 1 - sum(v for k, v in shares.items() if k != "other"))
+    hh = household_breakdown(irfs, paths, monthly_spend_thb, shares)
+    nc = p["current"]["nowcast"]
     pump = None
-    if brent and fx:
-        pump = pump_price_change(brent, brent * (1 + shock_pct / 100), fx, pass_through=pump_pass_through)
-    return {"shock_pct": shock_pct, "shock_currency": shock_currency, "path": path,
-            "household": household_costs(path, monthly_spend_thb), "pump": pump}
+    if nc.get("dubai_spot_nowcast_thb"):
+        base = nc["dubai_spot_nowcast_thb"]
+        pump = pump_price_change(base, base * (2.718281828 ** (shock_pct / 100)), pass_through=pump_pass_through)
+    return {"shock": shock, "shock_pct": shock_pct, "paths": paths, "household": hh, "pump": pump}
 
 
 @app.get("/")

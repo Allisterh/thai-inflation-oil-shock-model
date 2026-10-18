@@ -29,10 +29,11 @@ def main(argv=None):
     elif args.cmd == "run":
         from .pipeline import run
         p = run(sync=not args.no_sync, force=args.force, offline=args.offline)
-        cur = p["current"]
-        print(f"generated {p['generated_at']}; sample {p['model']['sample']}")
-        print(f"Brent {cur.get('brent_latest')} USD/bbl on {cur.get('brent_latest_date')}; "
-              f"quarter-to-date shock {cur.get('shock_qtd_pct', float('nan')):.1f}%")
+        cur, nc, cpi = p["current"], p["current"]["nowcast"], p["cpi_latest"]
+        print(f"generated {p['generated_at']}; sample from {p['model']['sample_start']}")
+        print(f"CPI {cpi['month']}: headline {cpi.get('headline_yoy'):+.2f}% y/y, energy {cpi.get('energy_yoy'):+.1f}%")
+        print(f"Dubai {cur['dubai_last_month']}: {cur['dubai_last_usd']:.1f} USD/bbl; Brent {nc.get('brent_latest')} on {nc.get('brent_latest_date')}; "
+              f"month-to-date shock {cur.get('shock_mtd_pct') or float('nan'):+.1f}%")
         print("wrote web/data/latest.json and results/*.csv")
     elif args.cmd == "serve":
         import uvicorn

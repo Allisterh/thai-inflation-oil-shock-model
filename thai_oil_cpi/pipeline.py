@@ -9,13 +9,12 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
-from .lp import LPSpec, local_projections, scenario_table
-from .projection import observed_shock_path, scenario_path, shock_history
+from .model import estimate_all, monthly_spec
+from .projection import HOUSEHOLD_CATEGORIES, observed_shock_path, shock_history
 from .sync import Dataset, build_dataset, sync_all
 
 
 def _clean(obj):
-    """Make numpy / NaN values JSON-safe."""
     if isinstance(obj, dict):
         return {str(k): _clean(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
@@ -23,7 +22,7 @@ def _clean(obj):
     if isinstance(obj, (np.integer,)):
         return int(obj)
     if isinstance(obj, (np.floating, float)):
-        return None if (obj is None or math.isnan(obj) or math.isinf(obj)) else float(obj)
+        return None if (math.isnan(obj) or math.isinf(obj)) else round(float(obj), 5)
     if isinstance(obj, (np.bool_,)):
         return bool(obj)
     if isinstance(obj, (pd.Period, pd.Timestamp)):
@@ -31,113 +30,140 @@ def _clean(obj):
     return obj
 
 
-def estimate(ds: Dataset, spec: LPSpec | None = None) -> dict[str, pd.DataFrame]:
-    """Estimate the IRF for the USD-Brent shock and the baht-Brent shock."""
-    spec = spec or LPSpec()
-    q = ds.quarterly
-    sample = q.dropna(subset=["yoy", "oil_shock_pct"])
-    out = {"usd": local_projections(sample["yoy"], sample["oil_shock_pct"], spec)}
-    sample_thb = q.dropna(subset=["yoy", "oil_shock_thb_pct"])
-    if len(sample_thb) >= 15:
-        out["thb"] = local_projections(sample_thb["yoy"], sample_thb["oil_shock_thb_pct"], spec)
-    return out
+def _irf_records(irf: pd.DataFrame) -> list[dict]:
+    return [{"h": int(r.h), "beta": r.beta, "se": r.se, "lower": r.lower, "upper": r.upper, "n": int(r.n),
+             "significant": bool(r.significant)} for r in irf.itertuples()]
+
+
+def default_shares(weights: dict[str, float]) -> dict[str, float]:
+    """Household spending shares implied by the CPI basket weights."""
+    w = {k: weights.get(k, 0.0) / 100 for k in ("vehicles_fuel", "electricity_fuel_water", "public_transport", "food")}
+    w["other"] = max(0.0, 1.0 - sum(w.values()))
+    return w
 
 
 def _daily_payload(s: pd.Series | None, days: int) -> list:
     if s is None or s.empty:
         return []
-    tail = s.tail(days)
-    return [[d.strftime("%Y-%m-%d"), round(float(v), 4)] for d, v in tail.items()]
+    return [[d.strftime("%Y-%m-%d"), round(float(v), 4)] for d, v in s.tail(days).items()]
 
 
-def build_payload(ds: Dataset, irfs: dict[str, pd.DataFrame], spec: LPSpec) -> dict:
-    q = ds.quarterly
-    sample = q.dropna(subset=["yoy", "oil_shock_pct"])
-    cpi_last = q["cpi"].dropna()
-    cpi_latest = {"quarter": str(cpi_last.index[-1]), "index": float(cpi_last.iloc[-1]),
-                  "yoy": float(q.loc[cpi_last.index[-1], "yoy"]) if not math.isnan(q.loc[cpi_last.index[-1], "yoy"]) else None}
-    if not ds.cpi_monthly.empty:
-        m = ds.cpi_monthly
-        yoy_m = m.pct_change(12) * 100
-        cpi_latest["monthly"] = {"month": str(m.index[-1]), "index": float(m.iloc[-1]),
-                                 "yoy": None if math.isnan(yoy_m.iloc[-1]) else float(yoy_m.iloc[-1])}
+def build_payload(ds: Dataset, irfs: dict) -> dict:
+    m = ds.monthly
+    meta = irfs["_meta"]
+    last_cpi_month = m["cpi_headline"].dropna().index[-1]
+    cpi_latest = {"month": str(last_cpi_month)}
+    for oc in C.OUTCOMES:
+        if f"yoy_{oc}" in m:
+            v = m.loc[last_cpi_month, f"yoy_{oc}"]
+            cpi_latest[f"{oc}_yoy"] = None if pd.isna(v) else float(v)
+            cpi_latest[f"{oc}_index"] = float(m.loc[last_cpi_month, f"cpi_{oc}"])
+    prev = m.loc[last_cpi_month - 1, "yoy_headline"] if (last_cpi_month - 1) in m.index else None
+    cpi_latest["headline_yoy_prev"] = None if prev is None or pd.isna(prev) else float(prev)
 
-    cur = dict(ds.current_quarter)
-    # Baht-denominated current shock, if we have both daily series.
-    if ds.brent_daily is not None and ds.usdthb_daily is not None and "prev_quarter_avg" in cur:
-        prev = q.loc[pd.Period(cur["prev_quarter"], freq="Q"), "brent_thb"] if pd.Period(cur["prev_quarter"], freq="Q") in q.index else np.nan
-        this_q = pd.Period(cur["quarter"], freq="Q")
-        bt = (ds.brent_daily * ds.usdthb_daily.reindex(ds.brent_daily.index).ffill()).dropna()
-        in_q = bt[bt.index.to_period("Q") == this_q]
-        if len(in_q) and prev and not math.isnan(prev):
-            cur["shock_qtd_thb_pct"] = float(100 * math.log(in_q.mean() / prev))
-            cur["shock_spot_persists_thb_pct"] = float(100 * math.log(bt.iloc[-1] / prev))
-
-    projections = {}
-    for key, irf in irfs.items():
-        col = "oil_shock_pct" if key == "usd" else "oil_shock_thb_pct"
-        projections[key] = {
-            "irf": irf.to_dict(orient="records"),
-            "observed_qtd": {
-                "shocks": shock_history(q, cur, col, current_mode="qtd"),
-                "path": observed_shock_path(irf, shock_history(q, cur, col, current_mode="qtd")),
-            },
-            "observed_spot": {
-                "shocks": shock_history(q, cur, col, current_mode="spot"),
-                "path": observed_shock_path(irf, shock_history(q, cur, col, current_mode="spot")),
-            },
-            "scenarios": {str(s): scenario_path(irf, s) for s in (-20, -10, 10, 20, 30, 50)},
-        }
-
-    quarterly_rows = []
-    for per, r in q.iterrows():
-        quarterly_rows.append({"quarter": str(per), **{k: (None if pd.isna(v) else float(v)) for k, v in r.items()}})
-
+    last_crude_month = m["dubai_usd"].dropna().index[-1]
+    nc = ds.nowcast
+    current = {
+        "month": str(pd.Timestamp.today().to_period("M")),
+        "dubai_last_month": str(last_crude_month),
+        "dubai_last_usd": float(m.loc[last_crude_month, "dubai_usd"]),
+        "brent_last_usd": float(m.loc[last_crude_month, "brent_usd"]) if not pd.isna(m.loc[last_crude_month, "brent_usd"]) else None,
+        "dubai_last_thb_per_litre": float(m.loc[last_crude_month, "dubai_thb_per_litre"]),
+        "usdthb_last_month": float(m.loc[last_crude_month, "usdthb"]),
+        "nowcast": nc,
+    }
     brent_d = ds.brent_daily
     changes = {}
     if brent_d is not None and len(brent_d) > 260:
         last = float(brent_d.iloc[-1])
         for label, n in (("1w", 5), ("1m", 21), ("3m", 63), ("1y", 252)):
             changes[label] = float(100 * (last / float(brent_d.iloc[-1 - n]) - 1))
+    current["brent_changes_pct"] = changes
+    # Shocks for the current month under both conventions, in the primary shock units.
+    for mode in ("mtd", "spot"):
+        hist = shock_history(m, nc, C.SHOCKS[C.PRIMARY_SHOCK], current_mode=mode)
+        current[f"shock_{mode}_pct"] = hist[-1][1] if hist and "(" in hist[-1][0] else None
+        current[f"shock_{mode}_label"] = hist[-1][0] if hist else None
+    yoy_dubai = m["dubai_thb"].pct_change(12).iloc[-1] * 100 if len(m) > 12 else None
+    current["dubai_thb_yoy_pct"] = None if yoy_dubai is None or pd.isna(yoy_dubai) else float(yoy_dubai)
+
+    # Retail fuel
+    retail = {}
+    if ds.retail_daily is not None and len(ds.retail_daily):
+        last = ds.retail_daily.sort_values("date").iloc[-1].to_dict()
+        retail["date"] = last.pop("date"); retail["brand"] = last.pop("brand", "ptt")
+        retail["prices"] = {k: (None if pd.isna(v) else float(v)) for k, v in last.items()}
+    if ds.price_structure:
+        retail["structure"] = ds.price_structure
+    hist_cols = [c for c in ("retail_gasohol95", "retail_diesel_b7", "retail_ulg95", "retail_gasohol91") if c in m]
+    retail["history"] = [{"month": str(i), **{c.replace("retail_", ""): (None if pd.isna(r[c]) else float(r[c])) for c in hist_cols}}
+                         for i, r in m[hist_cols].dropna(how="all").iterrows()] if hist_cols else []
+
+    # IRFs and observed-shock projections
+    irf_payload, proj = {}, {}
+    for key in C.SHOCKS:
+        if key not in irfs:
+            continue
+        irf_payload[key] = {oc: _irf_records(irf) for oc, irf in irfs[key].items()}
+        proj[key] = {}
+        for mode in ("mtd", "spot"):
+            hist = shock_history(m, nc, C.SHOCKS[key], current_mode=mode)
+            paths = {}
+            for oc, irf in irfs[key].items():
+                paths[oc] = [{k: v for k, v in r.items() if k != "contributions"} for r in observed_shock_path(irf, hist)]
+            proj[key][f"observed_{mode}"] = {"shocks": hist, "paths": paths}
+
+    # Monthly data for charts (from sample start)
+    start = pd.Period(meta["sample_start"], freq="M")
+    keep = [c for c in m.columns if c.startswith("yoy_") or c in ("dubai_usd", "brent_usd", "usdthb", "dubai_thb_per_litre",
+                                                                   "shock_dubai_thb", "shock_dubai_usd", "shock_brent_usd")]
+    monthly_rows = [{"month": str(i), **{c: (None if pd.isna(r[c]) else float(r[c])) for c in keep}}
+                    for i, r in m[m.index >= start][keep].iterrows()]
 
     return _clean({
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "model": {
-            "method": "Jordà (2005) local projections, HAC (Newey–West) SEs",
-            "spec": {"horizons": spec.horizons, "lags_y": spec.lags_y, "lags_x": spec.lags_x,
-                     "hac_maxlags": f"h+{spec.hac_extra_lags}", "frequency": "quarterly"},
-            "sample": {"first": str(sample.index[0]), "last": str(sample.index[-1]), "n": int(len(sample))},
-            "outcome": "Thailand headline CPI, YoY %",
-            "shock": {"usd": "100 × Δlog(quarterly average Brent, USD/bbl)",
-                      "thb": "100 × Δlog(quarterly average Brent × USD/THB)"},
+            "method": "Jordà (2005) local projections, monthly, Newey–West (HAC) standard errors",
+            "spec": meta["spec"], "sample_start": meta["sample_start"], "samples": meta["samples"],
+            "primary_shock": C.PRIMARY_SHOCK,
+            "shock_definitions": {
+                "dubai_thb": "100 × Δlog(monthly Dubai crude in baht) = Dubai USD/bbl × USD/THB",
+                "dubai_usd": "100 × Δlog(monthly Dubai crude, USD/bbl)",
+                "brent_usd": "100 × Δlog(monthly Brent crude, USD/bbl)"},
+            "outcomes": {oc: f"Thai CPI {oc.replace('_', ' ')}, year-on-year %" for oc in C.OUTCOMES},
         },
-        "current": cur,
-        "brent_changes_pct": changes,
+        "weights": ds.weights,
+        "default_shares": default_shares(ds.weights),
+        "household_categories": HOUSEHOLD_CATEGORIES,
+        "current": current,
         "cpi_latest": cpi_latest,
-        "projections": projections,
-        "data": {
-            "quarterly": quarterly_rows,
-            "brent_daily": _daily_payload(brent_d, C.WEB_DAILY_DAYS),
-            "usdthb_daily": _daily_payload(ds.usdthb_daily, C.WEB_DAILY_DAYS),
-        },
+        "retail": retail,
+        "irfs": irf_payload,
+        "projections": proj,
+        "data": {"monthly": monthly_rows, "brent_daily": _daily_payload(brent_d, C.WEB_DAILY_DAYS),
+                 "usdthb_daily": _daily_payload(ds.usdthb_daily, C.WEB_DAILY_DAYS)},
         "sources": ds.status,
     })
 
 
-def run(sync: bool = True, force: bool = False, offline: bool = False, spec: LPSpec | None = None) -> dict:
-    spec = spec or LPSpec()
+def run(sync: bool = True, force: bool = False, offline: bool = False, sample_start: str = C.SAMPLE_START) -> dict:
     status = sync_all(force=force, offline=offline) if sync else None
     ds = build_dataset(status)
-    irfs = estimate(ds, spec)
+    irfs = estimate_all(ds, monthly_spec(), sample_start=sample_start)
 
     C.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    irfs["usd"].to_csv(C.RESULTS_DIR / "irf_oil_to_cpi_quarterly.csv", index=False)
-    scenario_table(irfs["usd"], [10, 20, 30]).to_csv(C.RESULTS_DIR / "scenario_impacts_oil_to_cpi_quarterly.csv", index=False)
-    if "thb" in irfs:
-        irfs["thb"].to_csv(C.RESULTS_DIR / "irf_oil_thb_to_cpi_quarterly.csv", index=False)
-    ds.quarterly.to_csv(C.RESULTS_DIR / "model_dataset_quarterly.csv")
+    for key, by_oc in irfs.items():
+        if key.startswith("_"):
+            continue
+        frames = []
+        for oc, irf in by_oc.items():
+            f = irf.copy(); f.insert(0, "outcome", oc); f.insert(0, "shock", key); frames.append(f)
+        if frames:
+            pd.concat(frames).to_csv(C.RESULTS_DIR / f"irf_monthly_{key}.csv", index=False)
+    ds.monthly.to_csv(C.RESULTS_DIR / "model_dataset_monthly.csv")
+    pd.Series(ds.weights).rename("weight_pct").to_csv(C.RESULTS_DIR / "cpi_weights_tpso.csv")
 
-    payload = build_payload(ds, irfs, spec)
+    payload = build_payload(ds, irfs)
     C.WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    C.LATEST_JSON.write_text(json.dumps(payload, ensure_ascii=False, indent=1))
+    C.LATEST_JSON.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
     return payload

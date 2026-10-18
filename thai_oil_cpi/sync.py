@@ -1,25 +1,19 @@
-"""Sync external data into ``data/cache`` and build the quarterly model dataset.
+"""Sync every series into ``data/cache`` and assemble the monthly model dataset.
 
-Source chains (first success wins; the cache is used when every source fails):
+Sources (first success wins; the cache is used when every source fails):
 
-* Brent daily   : Yahoo Finance ``BZ=F`` (ICE front-month futures; this matches
-                  the curated quarterly file almost exactly) → EIA Brent spot
-                  spreadsheet → FRED ``DCOILBRENTEU``.
-* USD/THB daily : Yahoo Finance ``THB=X`` → FRED ``DEXTHUS``.
-* Thai CPI      : ``data/thai_cpi_monthly_manual.csv`` (maintainer-updated
-                  from the Ministry of Commerce monthly release) → ``THAI_CPI_URL``
-                  env var (any date,value CSV) → FRED ``THACPIALLMINMEI``
-                  → DBnomics IMF ``M.TH.PCPI_IX``. Every external CPI feed is
-                  validated against the curated quarterly series before use.
-
-The curated quarterly spreadsheets in ``data/`` are always the base of the
-CPI series; external monthly feeds only extend it forward.
+* Thai CPI, monthly, all categories + weights : TPSO Index API (official)
+* Dubai / Brent / WTI, monthly                : World Bank Pink Sheet → IMF PCPS (DBnomics)
+* USD/THB, monthly                            : IMF IFS (DBnomics) extended with Yahoo daily averages
+* Brent spot, daily                           : EIA dated Brent → Yahoo ICE futures
+* USD/THB, daily                              : Yahoo Finance THB=X
+* Thai pump prices                            : EPPO JSON (daily snapshot) + EPPO Table 9 (monthly since 2003)
+* Official pump price structure               : EPPO JSON (ex-refinery, taxes, Oil Fund, margin, VAT)
 """
 from __future__ import annotations
 
 import json
-import os
-import re
+import math
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -29,9 +23,7 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
-from . import sources as S
-
-QUARTER_RE = re.compile(r"^(\d{4})\s*-?\s*Q([1-4])$", re.IGNORECASE)
+from .sources import SourceError, dbnomics, eia, eppo, tpso, worldbank, yahoo
 
 
 # --------------------------------------------------------------------------
@@ -54,238 +46,241 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
 
-def _load_status() -> dict:
+def load_status() -> dict:
     if C.SYNC_STATUS_JSON.exists():
         try:
             return json.loads(C.SYNC_STATUS_JSON.read_text())
         except json.JSONDecodeError:
-            return {}
+            pass
     return {}
 
 
 def _save_status(status: dict) -> None:
     C.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    C.SYNC_STATUS_JSON.write_text(json.dumps(status, indent=2))
+    C.SYNC_STATUS_JSON.write_text(json.dumps(status, indent=2, ensure_ascii=False))
 
 
-def _cache_fresh(name: str, status: dict, max_age_hours: float) -> bool:
-    entry = status.get(name)
+def _fresh(entry: dict | None, max_age_hours: float) -> bool:
     if not entry or not entry.get("fetched_at") or entry.get("from_cache"):
         return False
-    fetched = datetime.fromisoformat(entry["fetched_at"])
-    return datetime.now(timezone.utc) - fetched < timedelta(hours=max_age_hours)
+    return datetime.now(timezone.utc) - datetime.fromisoformat(entry["fetched_at"]) < timedelta(hours=max_age_hours)
 
 
 # --------------------------------------------------------------------------
 # Cache I/O
 # --------------------------------------------------------------------------
-def _write_daily(path: Path, s: pd.Series) -> None:
+def _write_series(path: Path, s: pd.Series, index_name: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    s.rename("value").to_frame().rename_axis("date").to_csv(path, date_format="%Y-%m-%d")
+    pd.DataFrame({index_name: s.index.astype(str), "value": s.values}).to_csv(path, index=False)
 
 
 def _read_daily(path: Path) -> pd.Series | None:
     if not path.exists():
         return None
-    df = pd.read_csv(path, parse_dates=["date"])
-    return pd.Series(df["value"].values, index=df["date"], name="value").sort_index()
-
-
-def _write_monthly(path: Path, s: pd.Series) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    pd.DataFrame({"date": s.index.astype(str), "value": s.values}).to_csv(path, index=False)
-
-
-def _read_monthly(path: Path) -> pd.Series | None:
-    if not path.exists():
-        return None
-    return S.monthly_series_from_frame(pd.read_csv(path))
-
-
-# --------------------------------------------------------------------------
-# Curated seed series
-# --------------------------------------------------------------------------
-def normalize_quarter(label) -> str:
-    m = QUARTER_RE.match(str(label).strip().upper())
-    if not m:
-        raise ValueError(f"Bad quarter label: {label!r}")
-    return f"{m.group(1)}-Q{m.group(2)}"
-
-
-def _quarter_period(label: str) -> pd.Period:
-    y, q = normalize_quarter(label).split("-Q")
-    return pd.Period(year=int(y), quarter=int(q), freq="Q")
-
-
-def read_seed_quarterly(path: Path, value_col: str) -> pd.Series:
-    """Read a curated quarterly spreadsheet into a Series on a quarterly PeriodIndex.
-
-    If labels are out of order the file is assumed to be chronological and the
-    offending label is repaired (the shipped Brent file labels 2024-Q4 as
-    2025-Q4); the repair is logged via ``read_seed_quarterly.repairs``.
-    """
-    df = pd.read_excel(path)
-    periods = [_quarter_period(x) for x in df["Date"]]
-    repairs: list[str] = []
-    for i in range(1, len(periods)):
-        expected = periods[i - 1] + 1
-        if periods[i] != expected and (i + 1 < len(periods) and periods[i + 1] == expected + 1):
-            repairs.append(f"{path.name}: row {i} labelled {periods[i]} read as {expected}")
-            periods[i] = expected
-    read_seed_quarterly.repairs = repairs  # type: ignore[attr-defined]
-    s = pd.Series(pd.to_numeric(df[value_col], errors="coerce").values,
-                  index=pd.PeriodIndex(periods, freq="Q")).dropna()
-    s = s[~s.index.duplicated(keep="last")].sort_index()
+    df = pd.read_csv(path)
+    s = pd.Series(df["value"].values, index=pd.to_datetime(df["date"]), name="value").sort_index()
     return s
 
 
-read_seed_quarterly.repairs = []  # type: ignore[attr-defined]
+def _read_monthly_series(path: Path) -> pd.Series | None:
+    if not path.exists():
+        return None
+    df = pd.read_csv(path)
+    return pd.Series(df["value"].values, index=pd.PeriodIndex(df["month"], freq="M"), name="value").sort_index()
+
+
+def _write_monthly_frame(path: Path, df: pd.DataFrame) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    out = df.copy()
+    out.index = out.index.astype(str)
+    out.index.name = "month"
+    out.to_csv(path)
+
+
+def _read_monthly_frame(path: Path) -> pd.DataFrame | None:
+    if not path.exists():
+        return None
+    df = pd.read_csv(path)
+    df.index = pd.PeriodIndex(df["month"], freq="M")
+    return df.drop(columns="month").sort_index()
+
+
+def read_tpso_cache() -> pd.DataFrame | None:
+    if not C.TPSO_CPI_CSV.exists():
+        return None
+    df = pd.read_csv(C.TPSO_CPI_CSV, dtype={"code": str, "parent": str})
+    df["month"] = pd.PeriodIndex(df["month"], freq="M")
+    return df
 
 
 # --------------------------------------------------------------------------
-# Fetch helpers with fall-through
+# Individual sync steps
 # --------------------------------------------------------------------------
-def _try_sources(name: str, chain: list[tuple[str, Callable[[], pd.Series]]],
-                 validate: Callable[[pd.Series], str | None] | None = None) -> tuple[pd.Series | None, SeriesStatus]:
+def _run(name: str, chain: list[tuple[str, Callable[[], object]]]):
     st = SeriesStatus(name=name)
     for label, fn in chain:
         try:
-            s = fn()
-            if validate is not None:
-                problem = validate(s)
-                if problem:
-                    st.errors.append(f"{label}: rejected ({problem})")
-                    continue
-            st.source = label
-            st.fetched_at = _now_iso()
-            st.first_obs, st.last_obs, st.n_obs = str(s.index[0]), str(s.index[-1]), int(len(s))
-            return s, st
-        except S.SourceError as exc:
+            obj = fn()
+            st.source, st.fetched_at = label, _now_iso()
+            return obj, st
+        except SourceError as exc:
             st.errors.append(f"{label}: {exc}")
-        except Exception as exc:  # defensive: a parser bug must not kill the sync
+        except Exception as exc:  # a parser bug must not kill the sync
             st.errors.append(f"{label}: unexpected {type(exc).__name__}: {exc}")
     return None, st
 
 
-def _finish_with_cache(name: str, s: pd.Series | None, st: SeriesStatus, cache_reader, status: dict) -> pd.Series | None:
+def _describe(st: SeriesStatus, index) -> None:
+    if len(index):
+        st.first_obs, st.last_obs, st.n_obs = str(index[0])[:10], str(index[-1])[:10], int(len(index))
+
+
+def _cached(name: str, st: SeriesStatus, prev: dict, obj, note: str) -> None:
+    st.from_cache, st.source, st.fetched_at = True, prev.get(name, {}).get("source"), prev.get(name, {}).get("fetched_at")
+    st.note = note
+
+
+def sync_tpso(prev: dict, force: bool) -> SeriesStatus:
+    name = "tpso_cpi"
+    st = SeriesStatus(name=name)
+    cached = read_tpso_cache()
+    master = None
+    try:
+        master = tpso.fetch_master()
+    except SourceError as exc:
+        st.errors.append(f"master: {exc}")
+    last_updated = master.get("lastUpdated") if master else None
+    if cached is not None and not force and last_updated and prev.get(name, {}).get("last_updated") == last_updated:
+        st.source, st.fetched_at = prev[name].get("source"), prev[name].get("fetched_at")
+        st.note = "TPSO lastUpdated unchanged; cache reused"
+        _describe(st, cached[cached.code == "00000"]["month"].values)
+        st_dict = asdict(st); st_dict["last_updated"] = last_updated
+        return st_dict
+    df, st2 = _run(name, [("TPSO Index API (cpig/filter)", tpso.fetch_cpi_all)])
+    st.errors += st2.errors
+    if df is not None:
+        st.source, st.fetched_at = st2.source, st2.fetched_at
+        C.CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        out = df.copy(); out["month"] = out["month"].astype(str)
+        out.to_csv(C.TPSO_CPI_CSV, index=False)
+        if master:
+            C.TPSO_MASTER_JSON.write_text(json.dumps(master, ensure_ascii=False))
+        _describe(st, df[df.code == "00000"]["month"].values)
+    elif cached is not None:
+        _cached(name, st, prev, cached, "TPSO unreachable; using cached copy")
+        _describe(st, cached[cached.code == "00000"]["month"].values)
+    st_dict = asdict(st); st_dict["last_updated"] = last_updated or prev.get(name, {}).get("last_updated")
+    return st_dict
+
+
+def sync_pink_sheet(prev: dict, force: bool, max_age_hours: float) -> dict:
+    name = "crude_monthly"
+    cached = _read_monthly_frame(C.PINK_SHEET_CSV)
+    if cached is not None and not force and _fresh(prev.get(name), max_age_hours):
+        st = SeriesStatus(name=name, source=prev[name]["source"], fetched_at=prev[name]["fetched_at"], note="cache is fresh")
+        _describe(st, cached.index); return asdict(st)
+    df, st = _run(name, [("World Bank Pink Sheet", worldbank.fetch_pink_sheet_monthly),
+                         ("IMF PCPS via DBnomics", lambda: dbnomics.fetch_dubai_monthly().rename("dubai").to_frame())])
+    if df is not None:
+        _write_monthly_frame(C.PINK_SHEET_CSV, df); _describe(st, df.index)
+        if "source_url" in df.attrs:
+            st.note = df.attrs["source_url"]
+    elif cached is not None:
+        _cached(name, st, prev, cached, "all sources failed; using cached copy"); _describe(st, cached.index)
+    return asdict(st)
+
+
+def sync_fx_monthly(prev: dict, force: bool, max_age_hours: float) -> dict:
+    name = "usdthb_monthly_imf"
+    cached = _read_monthly_series(C.IMF_FX_CSV)
+    if cached is not None and not force and _fresh(prev.get(name), max_age_hours * 6):
+        st = SeriesStatus(name=name, source=prev[name]["source"], fetched_at=prev[name]["fetched_at"], note="cache is fresh")
+        _describe(st, cached.index); return asdict(st)
+    s, st = _run(name, [("IMF IFS via DBnomics", dbnomics.fetch_usdthb_monthly)])
     if s is not None:
-        return s
-    cached = cache_reader()
-    prev = status.get(name, {})
-    if cached is not None:
-        st.from_cache = True
-        st.source = prev.get("source")
-        st.fetched_at = prev.get("fetched_at")
-        st.first_obs, st.last_obs, st.n_obs = str(cached.index[0]), str(cached.index[-1]), int(len(cached))
-        st.note = "all sources failed; using cached copy"
-    return cached
+        _write_series(C.IMF_FX_CSV, s, "month"); _describe(st, s.index)
+    elif cached is not None:
+        _cached(name, st, prev, cached, "source failed; using cached copy"); _describe(st, cached.index)
+    return asdict(st)
 
 
-# --------------------------------------------------------------------------
-# Public sync
-# --------------------------------------------------------------------------
-def sync_daily_series(name: str, chain, cache_path: Path, status: dict, force: bool, max_age_hours: float) -> tuple[pd.Series | None, SeriesStatus]:
-    if not force and _cache_fresh(name, status, max_age_hours):
-        cached = _read_daily(cache_path)
-        if cached is not None:
-            st = SeriesStatus(**{k: v for k, v in status[name].items() if k in SeriesStatus.__dataclass_fields__})
-            st.note = "cache is fresh; skipped fetch"
-            return cached, st
-    s, st = _try_sources(name, chain)
+def sync_daily(name: str, chain: list, path: Path, prev: dict, force: bool, max_age_hours: float) -> dict:
+    cached = _read_daily(path)
+    if cached is not None and not force and _fresh(prev.get(name), max_age_hours):
+        st = SeriesStatus(name=name, source=prev[name]["source"], fetched_at=prev[name]["fetched_at"], note="cache is fresh")
+        _describe(st, cached.index); return asdict(st)
+    s, st = _run(name, chain)
+    if s is not None and cached is not None and st.source != prev.get(name, {}).get("source") and prev.get(name, {}).get("source"):
+        st.note = f"source changed from {prev[name]['source']}"
     if s is not None:
-        _write_daily(cache_path, s)
-    s = _finish_with_cache(name, s, st, lambda: _read_daily(cache_path), status)
-    return s, st
+        _write_series(path, s, "date"); _describe(st, s.index)
+    elif cached is not None:
+        _cached(name, st, prev, cached, "source failed; using cached copy"); _describe(st, cached.index)
+    return asdict(st)
 
 
-def make_cpi_validator(seed_q: pd.Series):
-    """Reject a monthly feed whose quarterly averages disagree with the curated series."""
-    def validate(s: pd.Series) -> str | None:
-        if not isinstance(s.index, pd.PeriodIndex) or s.index.freqstr not in ("M", "ME"):
-            return "not a monthly series"
-        q = s.groupby(s.index.asfreq("Q")).mean()
-        counts = s.groupby(s.index.asfreq("Q")).size()
-        q = q[counts == 3]
-        overlap = q.index.intersection(seed_q.index)
-        if len(overlap) == 0:
-            return "no overlap with curated series to validate against"
-        overlap = overlap[-C.CPI_VALIDATION_QUARTERS:]
-        pct = ((q[overlap] / seed_q[overlap]) - 1).abs() * 100
-        if (pct > C.CPI_VALIDATION_TOL_PCT).any():
-            worst = pct.idxmax()
-            return (f"quarterly averages differ from curated data by up to {pct.max():.2f}% "
-                    f"(at {worst}); tolerance {C.CPI_VALIDATION_TOL_PCT}%")
-        return None
-    return validate
-
-
-def sync_cpi(seed_q: pd.Series, status: dict, force: bool, max_age_hours: float) -> tuple[pd.Series | None, SeriesStatus]:
-    name = "thai_cpi_monthly"
-    if not force and _cache_fresh(name, status, max_age_hours):
-        cached = _read_monthly(C.CPI_MONTHLY_CSV)
-        if cached is not None:
-            st = SeriesStatus(**{k: v for k, v in status[name].items() if k in SeriesStatus.__dataclass_fields__})
-            st.note = "cache is fresh; skipped fetch"
-            return cached, st
-    validate = make_cpi_validator(seed_q)
-    chain: list[tuple[str, Callable[[], pd.Series]]] = []
-    if C.MANUAL_CPI_CSV.exists():
-        chain.append(("manual_csv", lambda: S.monthly_series_from_frame(pd.read_csv(C.MANUAL_CPI_CSV))))
-    url = os.environ.get("THAI_CPI_URL")
-    if url:
-        chain.append(("THAI_CPI_URL", lambda: S.fetch_csv_url_monthly(url)))
-    chain.append(("FRED:THACPIALLMINMEI", lambda: _fred_monthly("THACPIALLMINMEI")))
-    chain.append(("DBnomics:IMF/CPI/M.TH.PCPI_IX", lambda: S.fetch_dbnomics_series("IMF", "CPI", "M.TH.PCPI_IX")))
-    s, st = _try_sources(name, chain, validate=validate)
+def sync_eppo(prev: dict, force: bool, max_age_hours: float) -> dict:
+    out = {}
+    # 1. daily retail snapshot (append)
+    name = "eppo_retail_daily"
+    r, st = _run(name, [("EPPO oil-prices JSON", eppo.fetch_retail_prices)])
+    if r is not None:
+        hist = pd.read_csv(C.EPPO_RETAIL_DAILY_CSV) if C.EPPO_RETAIL_DAILY_CSV.exists() else pd.DataFrame()
+        row = {"date": r["date"], "brand": r["brand"], **r["prices"]}
+        hist = pd.concat([hist, pd.DataFrame([row])]).drop_duplicates("date", keep="last").sort_values("date")
+        C.CACHE_DIR.mkdir(parents=True, exist_ok=True); hist.to_csv(C.EPPO_RETAIL_DAILY_CSV, index=False)
+        _describe(st, hist["date"].values)
+    elif C.EPPO_RETAIL_DAILY_CSV.exists():
+        hist = pd.read_csv(C.EPPO_RETAIL_DAILY_CSV); _cached(name, st, prev, hist, "source failed; using cached snapshots"); _describe(st, hist["date"].values)
+    out[name] = asdict(st)
+    # 2. price structure (latest + history)
+    name = "eppo_price_structure"
+    s, st = _run(name, [("EPPO oil-structure-prices JSON", eppo.fetch_price_structure)])
     if s is not None:
-        _write_monthly(C.CPI_MONTHLY_CSV, s)
-    s = _finish_with_cache(name, s, st, lambda: _read_monthly(C.CPI_MONTHLY_CSV), status)
-    if s is None:
-        st.note = "no validated external CPI feed; using curated quarterly series only"
-    return s, st
-
-
-def _fred_monthly(series_id: str) -> pd.Series:
-    s = S.fetch_fred_csv(series_id)
-    s.index = pd.PeriodIndex(s.index, freq="M")
-    s = s[~s.index.duplicated(keep="last")]
-    return s
+        C.EPPO_STRUCTURE_JSON.write_text(json.dumps(s, ensure_ascii=False))
+        rows = [{"date": s["date"], "product": p, **v} for p, v in s["products"].items()]
+        hist = pd.read_csv(C.EPPO_STRUCTURE_HISTORY_CSV) if C.EPPO_STRUCTURE_HISTORY_CSV.exists() else pd.DataFrame()
+        hist = pd.concat([hist, pd.DataFrame(rows)]).drop_duplicates(["date", "product"], keep="last").sort_values(["date", "product"])
+        hist.to_csv(C.EPPO_STRUCTURE_HISTORY_CSV, index=False)
+        st.last_obs, st.n_obs = s["date"], int(hist["date"].nunique())
+    elif C.EPPO_STRUCTURE_JSON.exists():
+        _cached(name, st, prev, None, "source failed; using cached structure")
+        st.last_obs = json.loads(C.EPPO_STRUCTURE_JSON.read_text()).get("date")
+    out[name] = asdict(st)
+    # 3. monthly retail history (Table 9), weekly refresh is plenty
+    name = "eppo_retail_monthly"
+    cached = _read_monthly_frame(C.EPPO_RETAIL_HISTORY_CSV)
+    if cached is not None and not force and _fresh(prev.get(name), max_age_hours * 6):
+        st = SeriesStatus(name=name, source=prev[name]["source"], fetched_at=prev[name]["fetched_at"], note="cache is fresh"); _describe(st, cached.index)
+    else:
+        df, st = _run(name, [("EPPO petroleum price statistics, Table 9", eppo.fetch_retail_history)])
+        if df is not None:
+            _write_monthly_frame(C.EPPO_RETAIL_HISTORY_CSV, df); _describe(st, df.index)
+        elif cached is not None:
+            _cached(name, st, prev, cached, "source failed; using cached copy"); _describe(st, cached.index)
+    out[name] = asdict(st)
+    return out
 
 
 def sync_all(force: bool = False, max_age_hours: float = C.DEFAULT_MAX_AGE_HOURS, offline: bool = False) -> dict:
-    """Fetch/refresh every series. Returns the status dict (also written to cache)."""
-    status = _load_status()
-    seed_brent = read_seed_quarterly(C.SEED_BRENT_XLSX, "Brent_Oil_USD_per_Barrel")
-    brent_repairs = list(read_seed_quarterly.repairs)
-    seed_cpi = read_seed_quarterly(C.SEED_CPI_XLSX, "CPI_Index")
-
+    prev = load_status()
     if offline:
-        brent = _read_daily(C.BRENT_DAILY_CSV); fx = _read_daily(C.USDTHB_DAILY_CSV); cpi_m = _read_monthly(C.CPI_MONTHLY_CSV)
-        st_b = SeriesStatus("brent_daily", note="offline", from_cache=brent is not None)
-        st_f = SeriesStatus("usdthb_daily", note="offline", from_cache=fx is not None)
-        st_c = SeriesStatus("thai_cpi_monthly", note="offline", from_cache=cpi_m is not None)
-    else:
-        brent, st_b = sync_daily_series(
-            "brent_daily",
-            [("yahoo:BZ=F", lambda: S.fetch_yahoo_daily("BZ=F")),
-             ("eia:RBRTEd", S.fetch_eia_brent_daily),
-             ("fred:DCOILBRENTEU", lambda: S.fetch_fred_csv("DCOILBRENTEU"))],
-            C.BRENT_DAILY_CSV, status, force, max_age_hours)
-        fx, st_f = sync_daily_series(
-            "usdthb_daily",
-            [("yahoo:THB=X", lambda: S.fetch_yahoo_daily("THB=X")),
-             ("fred:DEXTHUS", lambda: S.fetch_fred_csv("DEXTHUS"))],
-            C.USDTHB_DAILY_CSV, status, force, max_age_hours)
-        cpi_m, st_c = sync_cpi(seed_cpi, status, force, max_age_hours)
-
-    new_status = {
-        "synced_at": _now_iso(),
-        "seed_brent": {"first": str(seed_brent.index[0]), "last": str(seed_brent.index[-1]), "repairs": brent_repairs},
-        "seed_cpi": {"first": str(seed_cpi.index[0]), "last": str(seed_cpi.index[-1])},
-        st_b.name: asdict(st_b), st_f.name: asdict(st_f), st_c.name: asdict(st_c),
-    }
-    _save_status(new_status)
-    return new_status
+        status = dict(prev); status["synced_at"] = prev.get("synced_at"); status["offline"] = True
+        return status
+    status = {"synced_at": _now_iso()}
+    status["tpso_cpi"] = sync_tpso(prev, force)
+    status["crude_monthly"] = sync_pink_sheet(prev, force, max_age_hours)
+    status["usdthb_monthly_imf"] = sync_fx_monthly(prev, force, max_age_hours)
+    # Dated Brent spot (EIA) is the series the Pink Sheet's Brent and Dubai are built from, so it is the
+    # consistent daily companion for the Dubai nowcast; ICE futures (Yahoo) are the fallback.
+    status["brent_daily"] = sync_daily("brent_daily", [("EIA Brent spot (RBRTEd)", eia.fetch_brent_daily),
+                                                       ("Yahoo Finance BZ=F futures", lambda: yahoo.fetch_daily("BZ=F", "2000-01-01"))],
+                                       C.BRENT_DAILY_CSV, prev, force, max_age_hours)
+    status["usdthb_daily"] = sync_daily("usdthb_daily", [("Yahoo Finance THB=X", lambda: yahoo.fetch_daily("THB=X", "2000-01-01"))],
+                                        C.USDTHB_DAILY_CSV, prev, force, max_age_hours)
+    status.update(sync_eppo(prev, force, max_age_hours))
+    _save_status(status)
+    return status
 
 
 # --------------------------------------------------------------------------
@@ -293,77 +288,105 @@ def sync_all(force: bool = False, max_age_hours: float = C.DEFAULT_MAX_AGE_HOURS
 # --------------------------------------------------------------------------
 @dataclass
 class Dataset:
-    quarterly: pd.DataFrame        # complete quarters: brent, usdthb, brent_thb, cpi, yoy, shocks
+    monthly: pd.DataFrame            # complete months: CPI levels/yoy, crude, fx, shocks, retail
+    cpi_long: pd.DataFrame           # TPSO long table (all categories)
+    weights: dict[str, float]        # current basket weights (% of CPI) for named series
     brent_daily: pd.Series | None
     usdthb_daily: pd.Series | None
-    cpi_monthly: pd.Series         # curated+extended monthly where available (may be empty)
-    cpi_quarterly: pd.Series
-    current_quarter: dict          # partial-quarter info for projections
+    retail_daily: pd.DataFrame | None
+    price_structure: dict | None
+    nowcast: dict                    # months after the last Pink Sheet month, estimated from daily Brent
     status: dict
 
 
-def _quarter_mean_complete(s: pd.Series, last_complete: pd.Period) -> pd.Series:
-    q = s.groupby(s.index.to_period("Q")).mean()
-    return q[q.index <= last_complete]
+def _monthly_mean(s: pd.Series | None) -> pd.Series:
+    if s is None or s.empty:
+        return pd.Series(dtype=float)
+    return s.groupby(s.index.to_period("M")).mean()
 
 
 def build_dataset(status: dict | None = None) -> Dataset:
-    status = status or _load_status()
-    seed_brent = read_seed_quarterly(C.SEED_BRENT_XLSX, "Brent_Oil_USD_per_Barrel")
-    seed_cpi = read_seed_quarterly(C.SEED_CPI_XLSX, "CPI_Index")
+    status = status or load_status()
+    cpi_long = read_tpso_cache()
+    if cpi_long is None:
+        raise RuntimeError("No TPSO CPI data in cache. Run `python -m thai_oil_cpi sync` first.")
+    cpi = tpso.wide(cpi_long)
+    weights = tpso.latest_weights(cpi_long)
+
+    crude = _read_monthly_frame(C.PINK_SHEET_CSV)
+    if crude is None:
+        raise RuntimeError("No crude price data in cache. Run the sync first.")
+    fx_imf = _read_monthly_series(C.IMF_FX_CSV)
     brent_d = _read_daily(C.BRENT_DAILY_CSV)
     fx_d = _read_daily(C.USDTHB_DAILY_CSV)
-    cpi_m = _read_monthly(C.CPI_MONTHLY_CSV)
+    retail_m = _read_monthly_frame(C.EPPO_RETAIL_HISTORY_CSV)
+    retail_d = pd.read_csv(C.EPPO_RETAIL_DAILY_CSV) if C.EPPO_RETAIL_DAILY_CSV.exists() else None
+    structure = json.loads(C.EPPO_STRUCTURE_JSON.read_text()) if C.EPPO_STRUCTURE_JSON.exists() else None
 
     today = pd.Timestamp.today().normalize()
-    this_q = today.to_period("Q")
-    last_complete_q = this_q - 1
+    this_month = today.to_period("M")
+    last_complete_month = this_month - 1
 
-    # Brent quarterly: daily averages where available, seed otherwise.
-    if brent_d is not None:
-        brent_q = _quarter_mean_complete(brent_d, last_complete_q)
-        brent_q = seed_brent.combine_first(brent_q)  # seed wins on overlap (hand-checked)
-        brent_q = brent_q.combine_first(seed_brent)
+    # Monthly FX: IMF period averages, extended with Yahoo daily averages for complete months.
+    fx_yahoo_m = _monthly_mean(fx_d)
+    fx_yahoo_m = fx_yahoo_m[fx_yahoo_m.index <= last_complete_month]
+    fx_m = (fx_imf.copy() if fx_imf is not None else pd.Series(dtype=float))
+    fx_m = fx_m.combine_first(fx_yahoo_m) if not fx_m.empty else fx_yahoo_m
+    fx_note = None
+    if fx_imf is not None and not fx_yahoo_m.empty:
+        overlap = fx_imf.index.intersection(fx_yahoo_m.index)[-24:]
+        if len(overlap):
+            diff = (fx_imf[overlap] / fx_yahoo_m[overlap] - 1).abs().max() * 100
+            fx_note = f"IMF vs Yahoo monthly averages differ by at most {diff:.2f}% over the last {len(overlap)} overlapping months"
+
+    df = pd.DataFrame(index=pd.period_range(min(cpi.index[0], crude.index[0]), last_complete_month, freq="M"))
+    df.index.name = "month"
+    for col in cpi.columns:
+        df[f"cpi_{col}"] = cpi[col]
+        df[f"yoy_{col}"] = cpi[col].pct_change(12) * 100
+    df["dubai_usd"] = crude["dubai"]
+    if "brent" in crude:
+        df["brent_usd"] = crude["brent"]
+    # Fill Brent months the Pink Sheet does not have yet from daily data.
+    brent_m = _monthly_mean(brent_d)
+    if "brent_usd" in df:
+        df["brent_usd"] = df["brent_usd"].combine_first(brent_m)
     else:
-        brent_q = seed_brent.copy()
-    fx_q = _quarter_mean_complete(fx_d, last_complete_q) if fx_d is not None else pd.Series(dtype=float)
+        df["brent_usd"] = brent_m
+    df["usdthb"] = fx_m
+    df["dubai_thb"] = df["dubai_usd"] * df["usdthb"]
+    df["dubai_thb_per_litre"] = df["dubai_thb"] / C.LITRES_PER_BARREL
+    df["shock_dubai_thb"] = 100 * np.log(df["dubai_thb"]).diff()
+    df["shock_dubai_usd"] = 100 * np.log(df["dubai_usd"]).diff()
+    df["shock_brent_usd"] = 100 * np.log(df["brent_usd"]).diff()
+    if retail_m is not None:
+        for col in ("gasohol95", "gasohol91", "diesel_b7", "ulg95"):
+            if col in retail_m:
+                df[f"retail_{col}"] = retail_m[col]
 
-    # CPI quarterly: curated seed, extended by validated monthly data (complete quarters only).
-    cpi_q = seed_cpi.copy()
-    if cpi_m is not None and not cpi_m.empty:
-        counts = cpi_m.groupby(cpi_m.index.asfreq("Q")).size()
-        ext = cpi_m.groupby(cpi_m.index.asfreq("Q")).mean()
-        ext = ext[(counts == 3) & (ext.index > seed_cpi.index[-1])]
-        cpi_q = pd.concat([cpi_q, ext]).sort_index()
+    # Nowcast: months after the last Pink Sheet month, from daily Brent × latest Dubai/Brent ratio.
+    nowcast: dict = {"months": []}
+    last_ps = crude.index[-1]
+    ratio = float(crude["dubai"].iloc[-1] / crude["brent"].iloc[-1]) if "brent" in crude else 1.0
+    nowcast["dubai_brent_ratio"] = ratio
+    nowcast["ratio_month"] = str(last_ps)
+    if brent_d is not None and fx_d is not None:
+        fx_full_m = _monthly_mean(fx_d)
+        for m in pd.period_range(last_ps + 1, this_month, freq="M"):
+            b = brent_m.get(m, np.nan) if m != this_month else float(brent_d[brent_d.index.to_period("M") == m].mean())
+            f = fx_full_m.get(m, np.nan)
+            if math.isnan(b) or math.isnan(f):
+                continue
+            rec = {"month": str(m), "brent_usd": b, "dubai_usd_nowcast": b * ratio, "usdthb": f,
+                   "dubai_thb_nowcast": b * ratio * f, "partial": m == this_month,
+                   "days": int((brent_d.index.to_period("M") == m).sum())}
+            nowcast["months"].append(rec)
+        nowcast["brent_latest"] = float(brent_d.iloc[-1]); nowcast["brent_latest_date"] = str(brent_d.index[-1].date())
+        nowcast["usdthb_latest"] = float(fx_d.iloc[-1]); nowcast["usdthb_latest_date"] = str(fx_d.index[-1].date())
+        nowcast["dubai_spot_nowcast_usd"] = float(brent_d.iloc[-1]) * ratio
+        nowcast["dubai_spot_nowcast_thb"] = float(brent_d.iloc[-1]) * ratio * float(fx_d.iloc[-1])
+    if fx_note:
+        nowcast["fx_note"] = fx_note
 
-    df = pd.DataFrame({"brent": brent_q, "cpi": cpi_q}).sort_index()
-    df["usdthb"] = fx_q.reindex(df.index)
-    df["brent_thb"] = df["brent"] * df["usdthb"]
-    df["yoy"] = df["cpi"].pct_change(4) * 100
-    df["oil_shock_pct"] = 100 * np.log(df["brent"]).diff()
-    df["oil_shock_thb_pct"] = 100 * np.log(df["brent_thb"]).diff()
-    df.index.name = "quarter"
-
-    # Current (partial) quarter diagnostics from daily data.
-    cur: dict = {"quarter": str(this_q)}
-    if brent_d is not None:
-        in_q = brent_d[brent_d.index.to_period("Q") == this_q]
-        prev_q_avg = float(brent_q.get(last_complete_q, np.nan))
-        cur.update({
-            "days_so_far": int(len(in_q)),
-            "brent_qtd_avg": float(in_q.mean()) if len(in_q) else None,
-            "brent_latest": float(brent_d.iloc[-1]),
-            "brent_latest_date": str(brent_d.index[-1].date()),
-            "prev_quarter": str(last_complete_q),
-            "prev_quarter_avg": prev_q_avg,
-        })
-        if len(in_q) and prev_q_avg and not np.isnan(prev_q_avg):
-            cur["shock_qtd_pct"] = float(100 * np.log(in_q.mean() / prev_q_avg))
-            cur["shock_spot_persists_pct"] = float(100 * np.log(brent_d.iloc[-1] / prev_q_avg))
-    if fx_d is not None:
-        cur["usdthb_latest"] = float(fx_d.iloc[-1])
-        cur["usdthb_latest_date"] = str(fx_d.index[-1].date())
-
-    return Dataset(quarterly=df, brent_daily=brent_d, usdthb_daily=fx_d,
-                   cpi_monthly=cpi_m if cpi_m is not None else pd.Series(dtype=float),
-                   cpi_quarterly=cpi_q, current_quarter=cur, status=status)
+    return Dataset(monthly=df, cpi_long=cpi_long, weights=weights, brent_daily=brent_d, usdthb_daily=fx_d,
+                   retail_daily=retail_d, price_structure=structure, nowcast=nowcast, status=status)

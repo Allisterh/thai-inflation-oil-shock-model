@@ -1,48 +1,94 @@
 {
-  "synced_at": "2026-10-18T10:24:22+00:00",
-  "seed_brent": {
-    "first": "2016Q1",
-    "last": "2025Q3",
-    "repairs": []
+  "synced_at": "2026-10-18T11:10:21+00:00",
+  "tpso_cpi": {
+    "name": "tpso_cpi",
+    "source": "TPSO Index API (cpig/filter)",
+    "fetched_at": "2026-10-18T10:59:24+00:00",
+    "first_obs": "1976-01",
+    "last_obs": "2026-09",
+    "n_obs": 609,
+    "from_cache": false,
+    "errors": [],
+    "note": "TPSO lastUpdated unchanged; cache reused",
+    "last_updated": "2026-10-06T04:32:39.514018Z"
   },
-  "seed_cpi": {
-    "first": "2017Q1",
-    "last": "2025Q3"
+  "crude_monthly": {
+    "name": "crude_monthly",
+    "source": "World Bank Pink Sheet",
+    "fetched_at": "2026-10-18T10:59:25+00:00",
+    "first_obs": "1960-01",
+    "last_obs": "2026-09",
+    "n_obs": 801,
+    "from_cache": false,
+    "errors": [],
+    "note": "cache is fresh"
+  },
+  "usdthb_monthly_imf": {
+    "name": "usdthb_monthly_imf",
+    "source": "IMF IFS via DBnomics",
+    "fetched_at": "2026-10-18T10:59:26+00:00",
+    "first_obs": "1957-01",
+    "last_obs": "2025-07",
+    "n_obs": 823,
+    "from_cache": false,
+    "errors": [],
+    "note": "cache is fresh"
   },
   "brent_daily": {
     "name": "brent_daily",
-    "source": "yahoo:BZ=F",
-    "fetched_at": "2026-10-18T10:13:32+00:00",
-    "first_obs": "2007-07-30 00:00:00",
-    "last_obs": "2026-10-16 00:00:00",
-    "n_obs": 4784,
+    "source": "EIA Brent spot (RBRTEd)",
+    "fetched_at": "2026-10-18T11:10:15+00:00",
+    "first_obs": "1987-05-20",
+    "last_obs": "2026-10-14",
+    "n_obs": 9108,
     "from_cache": false,
     "errors": [],
-    "note": "cache is fresh; skipped fetch"
+    "note": "cache is fresh"
   },
   "usdthb_daily": {
     "name": "usdthb_daily",
-    "source": "yahoo:THB=X",
-    "fetched_at": "2026-10-18T10:13:33+00:00",
-    "first_obs": "2007-01-01 00:00:00",
-    "last_obs": "2026-10-16 00:00:00",
-    "n_obs": 5132,
-    "from_cache": false,
-    "errors": [],
-    "note": "cache is fresh; skipped fetch"
-  },
-  "thai_cpi_monthly": {
-    "name": "thai_cpi_monthly",
     "source": null,
     "fetched_at": null,
-    "first_obs": null,
-    "last_obs": null,
-    "n_obs": 0,
-    "from_cache": false,
+    "first_obs": "2007-01-01",
+    "last_obs": "2026-10-16",
+    "n_obs": 5132,
+    "from_cache": true,
     "errors": [
-      "FRED:THACPIALLMINMEI: GET https://fred.stlouisfed.org/graph/fredgraph.csv?id=THACPIALLMINMEI failed: HTTP Error 404: Not Found",
-      "DBnomics:IMF/CPI/M.TH.PCPI_IX: rejected (quarterly averages differ from curated data by up to 1.80% (at 2024Q2); tolerance 0.25%)"
+      "Yahoo Finance THB=X: GET https://query1.finance.yahoo.com/v8/finance/chart/THB%3DX?period1=946684800&period2=9999999999&interval=1d failed: HTTP Error 429: Too Many Requests"
     ],
-    "note": "no validated external CPI feed; using curated quarterly series only"
+    "note": "source failed; using cached copy"
+  },
+  "eppo_retail_daily": {
+    "name": "eppo_retail_daily",
+    "source": "EPPO oil-prices JSON",
+    "fetched_at": "2026-10-18T11:10:29+00:00",
+    "first_obs": "2026-10-09",
+    "last_obs": "2026-10-09",
+    "n_obs": 1,
+    "from_cache": false,
+    "errors": [],
+    "note": null
+  },
+  "eppo_price_structure": {
+    "name": "eppo_price_structure",
+    "source": "EPPO oil-structure-prices JSON",
+    "fetched_at": "2026-10-18T11:10:30+00:00",
+    "first_obs": null,
+    "last_obs": "2026-10-15",
+    "n_obs": 1,
+    "from_cache": false,
+    "errors": [],
+    "note": null
+  },
+  "eppo_retail_monthly": {
+    "name": "eppo_retail_monthly",
+    "source": "EPPO petroleum price statistics, Table 9",
+    "fetched_at": "2026-10-18T10:59:41+00:00",
+    "first_obs": "2003-01",
+    "last_obs": "2026-08",
+    "n_obs": 284,
+    "from_cache": false,
+    "errors": [],
+    "note": "cache is fresh"
   }
 }
