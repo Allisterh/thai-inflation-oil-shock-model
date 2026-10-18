@@ -55,3 +55,29 @@ def fetch_pink_sheet_monthly(url: str | None = None) -> pd.DataFrame:
         raise SourceError("Pink Sheet contained no Dubai observations")
     out.attrs["source_url"] = url
     return out
+
+
+def fetch_pink_sheet_food_index(url: str | None = None) -> pd.Series:
+    """World Bank food price index (nominal, 2010 = 100), monthly, from the 'Monthly Indices' sheet."""
+    url = url or discover_url()
+    raw = get(url, timeout=180)
+    try:
+        df = pd.read_excel(io.BytesIO(raw), sheet_name="Monthly Indices", header=None)
+    except Exception as exc:
+        raise SourceError(f"Could not parse Pink Sheet indices: {exc}") from exc
+    col = None
+    for i in range(12):
+        for j, v in enumerate(df.iloc[i]):
+            if isinstance(v, str) and v.strip().startswith("Food"):
+                col = j
+        if col is not None:
+            break
+    if col is None:
+        raise SourceError("Pink Sheet indices: no Food column")
+    data = df[df.iloc[:, 0].astype(str).str.match(r"^\d{4}M\d{2}$")]
+    s = pd.Series(pd.to_numeric(data.iloc[:, col], errors="coerce").values,
+                  index=pd.PeriodIndex(data.iloc[:, 0].astype(str).str.replace("M", "-"), freq="M")).dropna()
+    s.index.name = "month"
+    if s.empty:
+        raise SourceError("Pink Sheet food index empty")
+    return s

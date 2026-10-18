@@ -45,3 +45,46 @@ def test_retail_shock_history_uses_nowcast_months():
     hist = shock_history(m, nowcast, "shock_retail_fuel")
     assert [h[0] for h in hist[-2:]] == ["2026-09 (interpolated)", "2026-10 (so far)"]
     assert abs(hist[-1][1] - 100 * np.log(42 / 39)) < 1e-9
+
+
+def test_lp_ext_matches_plain_without_controls_and_splits_by_regime():
+    from thai_oil_cpi.lp import local_projections_ext
+    df = _synthetic(n=420)
+    spec = LPSpec(horizons=[1, 2, 3], lags_y=3, lags_x=3)
+    plain = local_projections(df["yoy_headline"], df["shock"], spec).set_index("h")
+    ext = local_projections_ext(df["yoy_headline"], df["shock"], spec)["all"].set_index("h")
+    assert np.allclose(plain["beta"], ext["beta"])
+    regime = pd.Series((np.arange(len(df)) % 2 == 0).astype(float), index=df.index)
+    split = local_projections_ext(df["yoy_headline"], df["shock"], spec, regime=regime)
+    assert set(split) == {"regime1", "regime0"}
+    # same data-generating process in both regimes, so the two estimates agree within error
+    r1, r0 = split["regime1"].set_index("h"), split["regime0"].set_index("h")
+    assert abs(r1.loc[1, "beta"] - r0.loc[1, "beta"]) < 3 * (r1.loc[1, "se"] + r0.loc[1, "se"])
+
+
+def test_crude_to_pump_pass_through_recovers_known_coefficients():
+    from thai_oil_cpi.model import crude_to_pump_pass_through
+    rng = np.random.default_rng(3)
+    n = 300
+    crude = pd.Series(rng.normal(0, 6, n))
+    pump = 0.3 * crude + 0.15 * crude.shift(1) + 0.05 * crude.shift(2) + rng.normal(0, 0.8, n)
+    idx = pd.period_range("2001-01", periods=n, freq="M")
+    m = pd.DataFrame({"shock_dubai_thb": crude.values, "shock_retail_fuel": pump.values,
+                      "regime_subsidy": (np.arange(n) % 3 == 0).astype(float)}, index=idx)
+    pt = crude_to_pump_pass_through(m, lags=3)
+    assert abs(pt["all"]["cumulative"] - 0.5) < 3 * pt["all"]["se"]
+    assert abs(pt["all"]["contemporaneous"] - 0.3) < 0.08
+    assert set(pt) >= {"all", "rising", "falling", "subsidy", "collecting"}
+
+
+def test_tariff_outlook_covers_announced_months_only():
+    from thai_oil_cpi.tariff import tariff_outlook
+    ft = {"base_tariff_thb_per_kwh": 3.78, "periods": [
+        {"start": "2026-05", "end": "2026-08", "tariff_thb_per_kwh": 3.95},
+        {"start": "2026-09", "end": "2026-12", "tariff_thb_per_kwh": 4.10},
+        {"start": "2027-01", "end": "2027-04", "tariff_thb_per_kwh": None}]}
+    out = tariff_outlook(ft, pd.Period("2026-07", freq="M"))
+    assert out["months_covered"] == 5 and out["covered_until"] == "2026-12"
+    assert out["known_change_pct"][0] == 0.0 and abs(out["known_change_pct"][2] - 100 * (4.10 / 3.95 - 1)) < 1e-9
+    assert tariff_outlook(ft, pd.Period("2027-02", freq="M")) is None
+    assert tariff_outlook(None) is None

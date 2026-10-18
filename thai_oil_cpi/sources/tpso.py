@@ -22,6 +22,9 @@ from .http import SourceError, get, post_json
 HOSTS = ["https://index.tpso.go.th/api", "https://index-api.tpso.go.th/api"]
 HEADERS = {"Origin": "https://index.tpso.go.th", "Referer": "https://index.tpso.go.th/cpi/index-price-change-rate/5"}
 TYPE_NATIONAL = "TG"
+# General CPI (cpig) region types and the low-income CPI (cpil) national type.
+REGION_TYPES = {"TG": "national", "10": "bangkok", "CC": "central", "NN": "north", "EE": "northeast", "SS": "south"}
+LOW_INCOME_TYPE = "TL"
 
 # Codes used by the model and the app.
 CODES = {
@@ -32,6 +35,8 @@ CODES = {
     "50000": "transport_comm",
     "51000": "public_transport",
     "52000": "vehicles_fuel",
+    "52200": "fuel",
+    "32100": "electricity",
     "91000": "raw_food",
     "92000": "energy",
     "93000": "core",
@@ -48,10 +53,10 @@ def _try(fn):
     raise SourceError(f"TPSO: all hosts failed: {last}")
 
 
-def fetch_master() -> dict:
+def fetch_master(dataset: str = "cpig") -> dict:
     """Metadata: base years, category tree, region types, available period, lastUpdated."""
     def go(host):
-        d = json.loads(get(f"{host}/cpig/master", headers=HEADERS))
+        d = json.loads(get(f"{host}/{dataset}/master", headers=HEADERS))
         if "period" not in d or "categories" not in d:
             raise SourceError("TPSO master payload malformed")
         return d
@@ -67,7 +72,7 @@ def _flatten(nodes, parent=None, out=None):
 
 
 def fetch_cpi_all(start_year_be: int = 2519, end_year_be: int | None = None, year_base_be: int = 2566,
-                  region_type: str = TYPE_NATIONAL) -> pd.DataFrame:
+                  region_type: str = TYPE_NATIONAL, dataset: str = "cpig") -> pd.DataFrame:
     """Every category, every month. Years are Buddhist Era in the API (BE = CE + 543).
 
     Returns a DataFrame with columns: code, parent, name_th, name_en, month (Period),
@@ -80,7 +85,7 @@ def fetch_cpi_all(start_year_be: int = 2519, end_year_be: int | None = None, yea
                "Types": [region_type]}
 
     def go(host):
-        raw = post_json(f"{host}/cpig/filter", payload, headers=HEADERS, timeout=300)
+        raw = post_json(f"{host}/{dataset}/filter", payload, headers=HEADERS, timeout=300)
         try:
             data = json.loads(raw)
         except json.JSONDecodeError as exc:
@@ -98,7 +103,7 @@ def fetch_cpi_all(start_year_be: int = 2519, end_year_be: int | None = None, yea
                 if m.get("index") is None:
                     continue
                 rows.append({
-                    "code": code, "parent": parent,
+                    "code": code, "parent": parent, "type": m.get("type") or region_type,
                     "name_th": node.get("commodityNameTH"), "name_en": (node.get("commodityNameEN") or "").strip(),
                     "month": pd.Period(year=int(y["year"]) - 543, month=int(m["month"]), freq="M"),
                     "index": float(m["index"]),

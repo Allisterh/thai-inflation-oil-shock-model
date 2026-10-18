@@ -1,0 +1,12 @@
+{
+  "_about": "Announced average electricity tariff (ERC, four-month Ft periods). Updated by hand when the ERC announces the next period; the pipeline reads this file and the simple page uses the announced change instead of the model for the electricity line while the announcement covers the months ahead. Values are the regulated average retail tariff in baht per kWh (base tariff 3.78 plus Ft). Set tariff to null for a period not yet announced.",
+  "base_tariff_thb_per_kwh": 3.78,
+  "periods": [
+    {"start": "2026-05", "end": "2026-08", "ft_satang_per_kwh": 16.23, "tariff_thb_per_kwh": 3.95,
+     "source": "https://www.erc.or.th/ (ERC resolution, Ft May-Aug 2026); https://www.thaipbs.or.th/news/content/309890"},
+    {"start": "2026-09", "end": "2026-12", "ft_satang_per_kwh": 16.23, "tariff_thb_per_kwh": 3.95,
+     "source": "https://www.thaipost.net/economy-news/1037295/ (ERC resolution, Ft Sep-Dec 2026 held at 16.23 satang, average 3.95 baht/unit)"},
+    {"start": "2027-01", "end": "2027-04", "ft_satang_per_kwh": null, "tariff_thb_per_kwh": null,
+     "source": "not yet announced (ERC normally announces late November / early December)"}
+  ]
+}

@@ -13,6 +13,7 @@ from .backtest import rolling_backtest
 from .model import estimate_all, monthly_spec
 from .projection import HOUSEHOLD_CATEGORIES, level_ahead_path, observed_shock_path, shock_history
 from .sync import Dataset, build_dataset, sync_all
+from .tariff import load_ft, tariff_outlook
 
 
 def _clean(obj):
@@ -32,8 +33,14 @@ def _clean(obj):
 
 
 def _irf_records(irf: pd.DataFrame) -> list[dict]:
+    """Rows for horizons 1..H (the pages index these positionally); the h = 0 row goes out separately."""
     return [{"h": int(r.h), "beta": r.beta, "se": r.se, "lower": r.lower, "upper": r.upper, "n": int(r.n),
-             "significant": bool(r.significant)} for r in irf.itertuples()]
+             "significant": bool(r.significant)} for r in irf.itertuples() if int(r.h) >= 1]
+
+
+def _beta0(irf: pd.DataFrame):
+    row = irf[irf["h"] == 0]
+    return None if row.empty or pd.isna(row["beta"].iloc[0]) else float(row["beta"].iloc[0])
 
 
 def default_shares(weights: dict[str, float]) -> dict[str, float]:
@@ -47,6 +54,38 @@ def _daily_payload(s: pd.Series | None, days: int) -> list:
     if s is None or s.empty:
         return []
     return [[d.strftime("%Y-%m-%d"), round(float(v), 4)] for d, v in s.tail(days).items()]
+
+
+def _cpi_latest(frame: pd.DataFrame) -> dict:
+    last = frame["cpi_headline"].dropna().index[-1]
+    out = {"month": str(last)}
+    for oc in C.OUTCOMES:
+        if f"yoy_{oc}" in frame:
+            v = frame.loc[last, f"yoy_{oc}"]
+            out[f"{oc}_yoy"] = None if pd.isna(v) else float(v)
+            out[f"{oc}_index"] = float(frame.loc[last, f"cpi_{oc}"]) if f"cpi_{oc}" in frame else None
+    prev = frame.loc[last - 1, "yoy_headline"] if (last - 1) in frame.index else None
+    out["headline_yoy_prev"] = None if prev is None or pd.isna(prev) else float(prev)
+    return out
+
+
+def _type_entry(frame: pd.DataFrame, by_shock: dict, weights: dict, m: pd.DataFrame, nc: dict) -> dict:
+    """Compact per-household-type block: latest official inflation by item, basket weights and the
+    'still to come' level paths from each model, so the page can personalise both cards."""
+    entry = {"cpi_latest": _cpi_latest(frame), "weights": weights, "default_shares": default_shares(weights or {}), "projections": {}, "peak": {}}
+    for key in C.COMBINED_SHOCKS:
+        if key not in by_shock:
+            continue
+        hist = shock_history(m, nc, C.SHOCKS[key], current_mode="mtd")
+        ahead, now_pp, peak = {}, {}, {}
+        for oc, irf in by_shock[key].items():
+            ahead[oc] = [r["level_pct"] for r in level_ahead_path(irf, hist)]
+            now_pp[oc] = observed_shock_path(irf, hist[:-1])[0]["impact_pp"] if len(hist) > 1 else 0.0
+            pos = irf[irf["h"] >= 1]; top = pos.loc[pos["beta"].idxmax()]
+            peak[oc] = {"h": int(top["h"]), "beta": float(top["beta"])}
+        entry["projections"][key] = {"level_ahead_pct": ahead, "now_pp": now_pp}
+        entry["peak"][key] = peak
+    return entry
 
 
 def build_payload(ds: Dataset, irfs: dict) -> dict:
@@ -121,11 +160,12 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
     retail["compare"] = comp
 
     # IRFs and observed-shock projections
-    irf_payload, proj = {}, {}
+    irf_payload, irf_h0, proj = {}, {}, {}
     for key in C.SHOCKS:
         if key not in irfs:
             continue
         irf_payload[key] = {oc: _irf_records(irf) for oc, irf in irfs[key].items()}
+        irf_h0[key] = {oc: _beta0(irf) for oc, irf in irfs[key].items()}
         proj[key] = {}
         for mode in ("mtd", "spot"):
             hist = shock_history(m, nc, C.SHOCKS[key], current_mode=mode)
@@ -161,6 +201,19 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
             proj["combined"][f"observed_{mode}"] = {"shocks": {a: proj[a][f"observed_{mode}"]["shocks"], b: proj[b][f"observed_{mode}"]["shocks"]}, "paths": paths,
                                                     "now_pp": {oc: (na[oc] + nb[oc]) / 2 for oc in paths if oc in na and oc in nb},
                                                     "level_ahead_pct": {oc: [(x + y) / 2 for x, y in zip(la[oc], lb[oc])] for oc in paths if oc in la and oc in lb}}
+
+    # Household types: national plus regions and the low-income index, each with its own curves.
+    types = {"national": _type_entry(m, {k: irfs[k] for k in C.COMBINED_SHOCKS if k in irfs}, ds.weights, m, nc)}
+    for tname, by_shock in irfs.get("_types", {}).items():
+        frame = (ds.types or {}).get(tname)
+        if frame is None or not by_shock:
+            continue
+        types[tname] = _type_entry(frame, by_shock, (ds.type_weights or {}).get(tname), m, nc)
+
+    # Crude -> pump first stage (what-if scenarios are chained through it), current Oil Fund regime,
+    # and the announced electricity tariff.
+    pass_through = irfs.get("_pass_through") or {}
+    tariff = tariff_outlook(load_ft())
 
     # Rolling pseudo-out-of-sample backtest (headline and energy) for each model and the combination.
     backtests = {}
@@ -210,7 +263,14 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
                 "dubai_usd": "100 × Δlog(monthly Dubai crude, USD/bbl)",
                 "brent_usd": "100 × Δlog(monthly Brent crude, USD/bbl)"},
             "outcomes": {oc: f"Thai CPI {oc.replace('_', ' ')}, year-on-year %" for oc in C.OUTCOMES},
+            "refinements": {"food_control": meta.get("food_control", False), "regime_split": meta.get("regime_split", False),
+                            "household_types": sorted(types), "scenario_chain": "crude -> pump (first-stage pass-through) -> pump-price model",
+                            "electricity_override": bool(tariff and tariff.get("months_covered"))},
         },
+        "types": types,
+        "pass_through": pass_through,
+        "regime_now": ds.regime_now,
+        "electricity_tariff": tariff,
         "weights": ds.weights,
         "default_shares": default_shares(ds.weights),
         "household_categories": HOUSEHOLD_CATEGORIES,
@@ -218,6 +278,7 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
         "cpi_latest": cpi_latest,
         "retail": retail,
         "irfs": irf_payload,
+        "irf_h0": irf_h0,
         "projections": proj,
         "display_default": C.DISPLAY_DEFAULT,
         "combined_of": list(C.COMBINED_SHOCKS),

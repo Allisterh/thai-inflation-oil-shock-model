@@ -24,7 +24,19 @@ Government price management is the largest source of error in a crude-only model
 1. **Pump-price model**: the shock is the monthly log change in a Bangkok retail fuel index (60% diesel B7, 40% gasohol 95, from EPPO, since 2003). It already embeds every policy decision and uses today's actual pump prices for the current month.
 2. **Crude model**: the shock is the monthly log change in Dubai crude in baht. It captures crude moves that have not reached the pump yet and is used for what-if scenarios.
 
-The simple page's headline number comes from the pump-price model, which beats both the crude model and their average on every backtest measure (six-month RMSE 0.96 vs 1.14 for the average; direction right in 30 of 36 months vs 22 of 35). The crude model is shown alongside, and the detailed page offers the average and each model on its own.
+The simple page's headline number comes from the pump-price model, which beats both the crude model and their average on every backtest measure (six-month RMSE 0.87 vs 1.11 for the average; direction right in 32 of 36 months vs 24 of 35). The crude model is shown alongside, and the detailed page offers the average and each model on its own.
+
+## Version 2.1: what was added for accuracy
+
+Each item below was built, run through the same rolling backtest, and kept only if it helped (or if it replaces a modelled number with a known one).
+
+- **Crude → pump first stage.** `model.crude_to_pump_pass_through` regresses the monthly pump-price shock on the current and three lagged crude shocks (2003 onward, HAC errors). Cumulative pass-through is 0.47 (s.e. 0.04): rising months 0.53, falling 0.39; months when the Oil Fund was subsidising diesel 0.64, collecting 0.45. What-if scenarios on the simple page now chain a crude move through this share into the pump-price model instead of the crude model, and the page says which regime the Oil Fund is in today (from EPPO's daily price structure).
+- **Regional and low-income households.** The sync also pulls TPSO's CPI for Bangkok, Central, North, Northeast and South and the low-income CPI (`cpil`, type `TL`), each with its own basket weights. The full set of local projections is estimated for every type and the simple page lets the reader pick one; both the "already happened" and "still to come" cards then use that index.
+- **Fuel-only index.** The household fuel line uses TPSO item 52200 (fuel) rather than the wider "vehicles and fuel" group, which also contains vehicle purchases and maintenance.
+- **Announced electricity tariff.** `data/ft_tariff.json` holds the ERC's four-monthly average tariff (currently 3.95 baht/kWh for May–August and September–December 2026). For months already announced, the electricity share of the "electricity, gas, water" line uses the announced change instead of the model. *The file is updated by hand when the ERC announces the next period; nothing else needs to change.*
+- **Same-month response.** The local projections now include horizon 0. Turning a year-on-year response into a price-level path needs it (ψ₁₂ = β₁₂ + β₀); without it the "still to come" path dipped sharply twelve months after every shock, most visibly for fuel.
+- **Tested and switched off** (`config.USE_REGIME`, `config.USE_FOOD_CONTROL`): splitting the 24-horizon response by Oil Fund regime roughly doubled the backtest error (too few months per regime); adding the World Bank food price index as a control helped the crude model but worsened the pump-price model. Both remain in `lp.local_projections_ext`.
+- **Not possible:** a daily pump-price history. EPPO's archive of daily retail prices returns 404 for recent dates, so the project accumulates its own daily snapshots from the live feed (`data/cache/eppo_retail_daily.csv`).
 
 ## How accurate it has been
 
@@ -32,12 +44,12 @@ The simple page's headline number comes from the pump-price model, which beats b
 
 | Horizon | Pump-price model | Crude model | Combined | No change |
 |---|---|---|---|---|
-| 1 month | 0.59 | 0.71 | 0.62 | 0.65 |
-| 3 months | 0.89 | 1.21 | 0.95 | 1.34 |
-| 6 months | 0.96 | 1.57 | 1.14 | 2.08 |
-| 12 months | 1.47 | 2.12 | 1.61 | 2.87 |
+| 1 month | 0.51 | 0.65 | 0.56 | 0.65 |
+| 3 months | 0.75 | 1.14 | 0.86 | 1.34 |
+| 6 months | 0.87 | 1.56 | 1.11 | 2.08 |
+| 12 months | 1.19 | 2.11 | 1.51 | 2.87 |
 
-The pump-price model's six-month projections correlate 0.88 with outcomes. Both models have a small positive bias, meaning they slightly overstate inflation after oil shocks, consistent with policy cushioning that the crude model cannot see. The detailed page shows this table and a chart of six-month projections against outcomes.
+The pump-price model's six-month projections correlate 0.92 with outcomes (figures as of October 2026, after adding the same-month response; they are regenerated on every run). Both models have a small positive bias, meaning they slightly overstate inflation after oil shocks, consistent with policy cushioning that the crude model cannot see. The detailed page shows this table and a chart of six-month projections against outcomes.
 
 Splitting crude rises from falls (`results/irf_monthly_dubai_thb_asymmetric.csv`) gives responses that differ by less than their standard errors, so a single symmetric response is used.
 
@@ -85,13 +97,16 @@ thai_oil_cpi/
 ├── sources/          # tpso.py, worldbank.py, eia.py, yahoo.py, dbnomics.py, eppo.py, http.py
 ├── sync.py           # source chains, cache, status, monthly dataset and nowcast
 ├── lp.py             # Jordà local projections with HAC standard errors
-├── model.py          # monthly estimation for every (shock, outcome) pair
-├── projection.py     # observed-shock paths, scenarios, household breakdown, pump prices
+├── model.py          # monthly estimation for every (shock, outcome) pair, per household type, and the crude→pump first stage
+├── projection.py     # observed-shock paths, level paths, scenarios, household breakdown, pump prices
+├── tariff.py         # announced electricity tariff (Ft) override from data/ft_tariff.json
+├── backtest.py       # rolling pseudo-out-of-sample evaluation
 ├── pipeline.py       # run everything, write results/ and web/data/latest.json
 ├── app.py            # FastAPI: web app + /api/latest, /api/project, /api/status, /api/refresh
 └── __main__.py       # python -m thai_oil_cpi {sync,run,serve}
-web/                  # index.html, app.js, style.css, data/latest.json
+web/                  # index.html + simple.js (simple page), advanced.html + app.js, how.html + how.js, data/latest.json
 data/cache/           # synced series and sync_status.json (committed so the static site has data)
+data/ft_tariff.json   # ERC electricity tariff announcements (kept by hand)
 data/*.xlsx           # the original hand-curated quarterly files (kept for the notebook and a cross-check test)
 results/              # irf_monthly_*.csv, model_dataset_monthly.csv, cpi_weights_tpso.csv, legacy quarterly outputs
 notebooks/analysis.ipynb   # the original quarterly exploration
@@ -113,6 +128,7 @@ Local projections (Jordà 2005) and structural VARs are the two standard tools f
 - Linear and symmetric by construction. Confidence bands on paths that combine many shocks ignore the covariance between horizons.
 - The current month's Dubai price is a nowcast from daily Brent spot and last month's Dubai/Brent ratio. When that spread moves fast, the nowcast is off.
 - Household figures scale the category indices by the household's own spending shares; everything outside the four named categories is proxied by core inflation.
+- Pump prices are Bangkok prices (EPPO). Upcountry prices are a little higher because of transport, which the regional option does not adjust for.
 
 ## License
 

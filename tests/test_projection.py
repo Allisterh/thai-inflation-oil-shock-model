@@ -36,3 +36,16 @@ def test_household_breakdown_and_pump():
     assert hh["peak_h"] == 1
     pump = pump_price_change(3000.0, 3300.0, pass_through=1.0)
     assert abs(pump["delta_pump_thb_per_litre"] - 300 / C.LITRES_PER_BARREL * (1 + C.VAT_RATE)) < 1e-9
+
+
+def test_level_irf_uses_same_month_response():
+    """A shock fully in prices in its own month: β_0..β_11 = 1, β_12.. = 0 must give a flat level path."""
+    import pandas as pd
+    from thai_oil_cpi.projection import level_irf, level_ahead_path
+    rows = [{"h": h, "beta": 1.0 if h < 12 else 0.0, "se": 0.1} for h in range(0, 25)]
+    irf = pd.DataFrame(rows)
+    psi = level_irf(irf)
+    assert all(abs(psi[h] - 1.0) < 1e-12 for h in range(0, 25))
+    # nothing further to come from a shock that is already fully in prices
+    ahead = level_ahead_path(irf, [("2026-04", 29.0)], horizons_ahead=12)
+    assert all(abs(r["level_pct"]) < 1e-9 for r in ahead)

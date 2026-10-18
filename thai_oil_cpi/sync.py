@@ -262,6 +262,46 @@ def sync_eppo(prev: dict, force: bool, max_age_hours: float) -> dict:
     return out
 
 
+def sync_tpso_types(prev: dict, force: bool, national_status: dict) -> dict:
+    """Regional and low-income CPI tables, refreshed only when TPSO's lastUpdated stamp changes."""
+    name = "tpso_cpi_types"
+    st = SeriesStatus(name=name)
+    last_updated = national_status.get("last_updated")
+    if C.TPSO_TYPES_CSV.exists() and not force and last_updated and prev.get(name, {}).get("last_updated") == last_updated:
+        st.source, st.fetched_at = prev[name].get("source"), prev[name].get("fetched_at"); st.note = "TPSO lastUpdated unchanged; cache reused"
+        d = asdict(st); d["last_updated"] = last_updated; return d
+    frames, errors = [], []
+    for tname, (dataset, rtype) in C.CPI_TYPES.items():
+        if tname == "national":
+            continue
+        try:
+            df = tpso.fetch_cpi_all(start_year_be=2519 if dataset == "cpig" else 2533, region_type=rtype, dataset=dataset)
+            df["type_name"] = tname; frames.append(df)
+        except SourceError as exc:
+            errors.append(f"{tname}: {exc}")
+    st.errors = errors
+    if frames:
+        out = pd.concat(frames); out["month"] = out["month"].astype(str)
+        C.CACHE_DIR.mkdir(parents=True, exist_ok=True); out.to_csv(C.TPSO_TYPES_CSV, index=False)
+        st.source, st.fetched_at = "TPSO Index API (regions + low income)", _now_iso(); st.n_obs = int(out["type_name"].nunique())
+    elif C.TPSO_TYPES_CSV.exists():
+        _cached(name, st, prev, None, "TPSO unreachable; using cached copy")
+    d = asdict(st); d["last_updated"] = last_updated or prev.get(name, {}).get("last_updated"); return d
+
+
+def sync_monthly_frame(name: str, fetch, path: Path, prev: dict, force: bool, max_age_hours: float, label: str) -> dict:
+    cached = _read_monthly_frame(path)
+    if cached is not None and not force and _fresh(prev.get(name), max_age_hours):
+        st = SeriesStatus(name=name, source=prev[name]["source"], fetched_at=prev[name]["fetched_at"], note="cache is fresh"); _describe(st, cached.index); return asdict(st)
+    obj, st = _run(name, [(label, fetch)])
+    if obj is not None:
+        df = obj.to_frame("value") if isinstance(obj, pd.Series) else obj
+        _write_monthly_frame(path, df); _describe(st, df.index)
+    elif cached is not None:
+        _cached(name, st, prev, cached, "source failed; using cached copy"); _describe(st, cached.index)
+    return asdict(st)
+
+
 def sync_all(force: bool = False, max_age_hours: float = C.DEFAULT_MAX_AGE_HOURS, offline: bool = False) -> dict:
     prev = load_status()
     if offline:
@@ -280,6 +320,9 @@ def sync_all(force: bool = False, max_age_hours: float = C.DEFAULT_MAX_AGE_HOURS
                                                          ("Yahoo Finance THB=X", lambda: yahoo.fetch_daily("THB=X", "2000-01-01"))],
                                         C.USDTHB_DAILY_CSV, prev, force, max_age_hours)
     status.update(sync_eppo(prev, force, max_age_hours))
+    status["tpso_cpi_types"] = sync_tpso_types(prev, force, status["tpso_cpi"])
+    status["oil_fund_monthly"] = sync_monthly_frame("oil_fund_monthly", eppo.fetch_oil_fund_history, C.OIL_FUND_CSV, prev, force, max_age_hours * 6, "EPPO petroleum price statistics, Table 7")
+    status["food_index_monthly"] = sync_monthly_frame("food_index_monthly", worldbank.fetch_pink_sheet_food_index, C.FOOD_INDEX_CSV, prev, force, max_age_hours, "World Bank Pink Sheet food index")
     _save_status(status)
     return status
 
@@ -298,6 +341,9 @@ class Dataset:
     price_structure: dict | None
     nowcast: dict                    # months after the last Pink Sheet month, estimated from daily Brent
     status: dict
+    types: dict = None               # type_name -> wide DataFrame of yoy_* columns (regions, low income)
+    type_weights: dict = None        # type_name -> weights
+    regime_now: dict = None          # current Oil Fund regime from today's price structure
 
 
 def _monthly_mean(s: pd.Series | None) -> pd.Series:
@@ -327,6 +373,8 @@ def build_dataset(status: dict | None = None) -> Dataset:
     today = pd.Timestamp.today().normalize()
     this_month = today.to_period("M")
     last_complete_month = this_month - 1
+    oil_fund = _read_monthly_frame(C.OIL_FUND_CSV)
+    food_idx = _read_monthly_frame(C.FOOD_INDEX_CSV)
 
     # Monthly FX: IMF period averages, extended with Yahoo daily averages for complete months.
     fx_yahoo_m = _monthly_mean(fx_d)
@@ -360,6 +408,14 @@ def build_dataset(status: dict | None = None) -> Dataset:
     df["shock_dubai_thb"] = 100 * np.log(df["dubai_thb"]).diff()
     df["shock_dubai_usd"] = 100 * np.log(df["dubai_usd"]).diff()
     df["shock_brent_usd"] = 100 * np.log(df["brent_usd"]).diff()
+    if oil_fund is not None:
+        df["oil_fund_diesel"] = oil_fund["diesel"].reindex(df.index)
+        df["oil_fund_gasohol95"] = oil_fund["gasohol95"].reindex(df.index)
+        # Regime: 1 when the Oil Fund is subsidising diesel (levy below zero), 0 when it collects.
+        df["regime_subsidy"] = (df["oil_fund_diesel"] < 0).astype(float).where(df["oil_fund_diesel"].notna())
+    if food_idx is not None:
+        df["food_index"] = food_idx["value"].reindex(df.index)
+        df["shock_food"] = 100 * np.log(df["food_index"]).diff()
     if retail_m is not None:
         for col in ("gasohol95", "gasohol91", "diesel_b7", "ulg95", "gasohol_e20"):
             if col in retail_m:
@@ -431,5 +487,22 @@ def build_dataset(status: dict | None = None) -> Dataset:
             last_row = retail_d.sort_values("date").iloc[-1]
             nowcast["retail_latest"] = {"date": last_row["date"], "gasohol95": float(last_row["gasohol95"]), "diesel_b7": float(last_row["diesel_b7"])}
 
+    # Regional and low-income CPI tables.
+    types, type_weights = {"national": None}, {"national": weights}
+    if C.TPSO_TYPES_CSV.exists():
+        tl = pd.read_csv(C.TPSO_TYPES_CSV, dtype={"code": str, "parent": str}); tl["month"] = pd.PeriodIndex(tl["month"], freq="M")
+        for tname, sub in tl.groupby("type_name"):
+            w = tpso.wide(sub); frame = pd.DataFrame(index=w.index)
+            for col in w.columns:
+                frame[f"cpi_{col}"] = w[col]; frame[f"yoy_{col}"] = w[col].pct_change(12) * 100
+            types[tname] = frame; type_weights[tname] = tpso.latest_weights(sub)
+    # Current regime from today's official price structure (diesel Oil Fund levy).
+    regime_now = None
+    if structure and "diesel_b7" in structure.get("products", {}):
+        levy = structure["products"]["diesel_b7"].get("oil_fund")
+        if levy is not None:
+            regime_now = {"diesel_levy_thb_per_litre": levy, "subsidy": bool(levy < 0), "date": structure.get("date"),
+                          "gasohol95_levy_thb_per_litre": structure["products"].get("gasohol95", {}).get("oil_fund")}
     return Dataset(monthly=df, cpi_long=cpi_long, weights=weights, brent_daily=brent_d, usdthb_daily=fx_d,
-                   retail_daily=retail_d, price_structure=structure, nowcast=nowcast, status=status)
+                   retail_daily=retail_d, price_structure=structure, nowcast=nowcast, status=status,
+                   types=types, type_weights=type_weights, regime_now=regime_now)

@@ -6,7 +6,7 @@
 <title>น้ำมันกับค่าครองชีพ</title>
 <meta name="description" content="น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท คำนวณจากราคาหน้าปั๊มจริง ดัชนีราคาผู้บริโภคของกระทรวงพาณิชย์ และราคาน้ำมันดิบวันนี้">
 <meta property="og:title" content="น้ำมันกับค่าครองชีพ">
-<meta property="og:description" content="น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท ตอบ 4 ข้อแล้วรู้ทันที">
+<meta property="og:description" content="น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท ตอบ 5 ข้อแล้วรู้ทันที">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231d2624%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-weight=%27700%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5c543%27%3E฿%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,7 @@
   <section class="hero">
     <p class="dateline" id="dateline"></p>
     <h1 data-i18n="h1">น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท</h1>
-    <p class="lede" data-i18n="lede">ตอบสี่ข้อสั้น ๆ แล้วรู้ทันทีว่าตอนนี้คุณจ่ายเพิ่มไปแล้วเท่าไรเทียบกับปีก่อน จากราคาหน้าปั๊มจริงและดัชนีราคาของกระทรวงพาณิชย์ และยังมีอะไรตามมาอีก</p>
+    <p class="lede" data-i18n="lede">ตอบห้าข้อสั้น ๆ แล้วรู้ทันทีว่าตอนนี้คุณจ่ายเพิ่มไปแล้วเท่าไรเทียบกับปีก่อน จากราคาหน้าปั๊มจริงและดัชนีราคาของกระทรวงพาณิชย์ และยังมีอะไรตามมาอีก</p>
   </section>
 
   <section class="facts-wrap">
@@ -65,6 +65,11 @@
       <div class="qlabel"><span data-i18n="qOther">ค่าใช้จ่ายอื่น ๆ</span><small data-i18n="otherHint">ค่าเช่า ของใช้ เสื้อผ้า ค่ารถสาธารณะ ค่ารักษา ค่าเทอม</small></div>
       <div class="qctl"><div class="seg" id="otherChips"></div><label class="mini"><input id="other" type="number" inputmode="numeric" min="0" step="500" value="8000"> <span data-i18n="baht">บาท</span></label></div>
     </div>
+    <div class="qrow">
+      <div class="qnum">5</div>
+      <div class="qlabel"><span data-i18n="qWhere">คุณอยู่ที่ไหน</span><small data-i18n="whereHint">ใช้ดัชนีราคาของภาคคุณ หรือดัชนีผู้มีรายได้น้อย</small></div>
+      <div class="qctl"><div class="seg seg-wrap" id="whereChips"></div></div>
+    </div>
     <p class="hint" data-i18n="perMonthHint">ตัวเลขทั้งหมดเป็นรายเดือน ใส่ค่าประมาณก็พอ</p>
   </section>
 
@@ -75,6 +80,7 @@
       <p class="result-big"><span id="nowTotal">–</span> <span class="result-unit" data-i18n="bahtPerMonth">บาทต่อเดือน</span></p>
       <p class="result-when" id="nowNote"></p>
       <div id="nowBars"></div>
+      <p class="plain small" id="typeNote"></p>
       <p class="plain small" data-i18n="nowSource">ส่วนนี้ใช้ตัวเลขจริงล้วน ๆ ราคาหน้าปั๊มจากกระทรวงพลังงาน และตัวเลขราคาสินค้าล่าสุดของกระทรวงพาณิชย์ ไม่มีการคาดเดา</p>
     </article>
     <article class="result next" aria-live="polite">
@@ -84,6 +90,7 @@
       <p class="result-when" id="nextWhen"></p>
       <div id="nextBars"></div>
       <p class="plain small" id="nextRange"></p>
+      <p class="plain small" id="nextElec"></p>
       <p class="plain small" id="nextAccuracy"></p>
     </article>
   </section>
@@ -98,6 +105,7 @@
     <h2 data-i18n="whatifTitle">แล้วถ้าน้ำมันดิบเปลี่ยนอีก</h2>
     <div class="seg" id="whatifChips"></div>
     <p class="whatif-answer" id="whatifAnswer"></p>
+    <p class="plain small" id="whatifNote"></p>
   </section>
 
   <section class="why">

@@ -145,14 +145,15 @@ def level_irf(irf: pd.DataFrame) -> dict[int, float]:
     """Recover the price-LEVEL response ψ_h from the year-on-year response β_h.
 
     y_t = 100·(log P_t − log P_{t−12}), so a shock's effect on y at horizon h is ψ_h − ψ_{h−12}
-    (with ψ = 0 before the shock). Hence ψ_h = β_h for h ≤ 12 and ψ_h = β_h + ψ_{h−12} after.
+    (with ψ = 0 before the shock). Hence ψ_h = β_h for h < 12 and ψ_h = β_h + ψ_{h−12} from h = 12,
+    which needs the same-month response β_0: a shock that is fully in prices in its own month
+    (fuel, for example) has β_0 ≈ β_1 ≈ … ≈ β_11 and β_12 ≈ 0, and ψ_12 = β_12 + β_0 keeps the
+    level where it is. Without an h = 0 row, β_0 is taken as 0 (the pre-2.1 behaviour).
     """
-    beta = {int(r.h): float(r.beta) for r in irf.itertuples()}
-    psi: dict[int, float] = {0: 0.0}
-    for h in sorted(beta):
-        if math.isnan(beta[h]):
-            continue
-        psi[h] = beta[h] + (psi.get(h - 12, 0.0) if h > 12 else 0.0)
+    beta = {int(r.h): float(r.beta) for r in irf.itertuples() if not math.isnan(float(r.beta))}
+    psi: dict[int, float] = {0: beta.get(0, 0.0)}
+    for h in sorted(k for k in beta if k >= 1):
+        psi[h] = beta[h] + (psi.get(h - 12, 0.0) if h >= 12 else 0.0)
     return psi
 
 

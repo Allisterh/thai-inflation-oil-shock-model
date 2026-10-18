@@ -20,6 +20,7 @@ from .http import SourceError, get
 RETAIL_URL = "https://www.eppo.go.th/wp-json/oil-api/v1/oil-prices"
 STRUCTURE_URL = "https://www.eppo.go.th/wp-json/oil-api/v1/oil-structure-prices"
 RETAIL_HISTORY_URL = "https://www.eppo.go.th/wp-content/uploads/2026/04/P09.xls"
+OIL_FUND_HISTORY_URL = "https://www.eppo.go.th/wp-content/uploads/2026/04/P07.xls"
 
 # product keys in the retail JSON (per brand prefix) → our names
 PRODUCTS = {"gh95": "gasohol95", "gh91": "gasohol91", "e20": "gasohol_e20", "e85": "gasohol_e85",
@@ -121,4 +122,34 @@ def fetch_retail_history(url: str = RETAIL_HISTORY_URL) -> pd.DataFrame:
     if not rows:
         raise SourceError("EPPO Table 9 layout changed: no monthly WT.AVG rows found")
     out = pd.DataFrame(rows).drop_duplicates("month").set_index("month").sort_index()
+    return out
+
+
+def fetch_oil_fund_history(url: str = OIL_FUND_HISTORY_URL) -> pd.DataFrame:
+    """Monthly Oil Fund levy per litre (THB; negative = subsidy) since 2001, Table 7.
+
+    Columns: ulg95, ugr91, gasohol95, gasohol_e20, gasohol_e85, gasohol91, kerosene, diesel_hd, diesel_b7, diesel.
+    ``diesel`` splices the pre-B7 high-speed diesel column with B7 so the regime series is continuous.
+    """
+    raw = get(url, timeout=180)
+    try:
+        df = pd.read_excel(io.BytesIO(raw), sheet_name=0, header=None)
+    except Exception as exc:
+        raise SourceError(f"Could not parse EPPO Table 7: {exc}") from exc
+    cols = ["ulg95", "ugr91", "gasohol95", "gasohol_e20", "gasohol_e85", "gasohol91", "kerosene", "diesel_hd", "diesel_b7"]
+    rows, year = [], None
+    for _, r in df.iterrows():
+        label = str(r.iloc[0]).strip().upper()
+        if re.fullmatch(r"(19|20)\d{2}", label):
+            year = int(label); continue
+        if label in MONTHS and year:
+            vals = r.iloc[1:1 + len(cols)].tolist()
+            rec = {"month": pd.Period(year=year, month=MONTHS[label], freq="M")}
+            for c, v in zip(cols, vals):
+                rec[c] = _num(v) if v == v else None
+            rows.append(rec)
+    if not rows:
+        raise SourceError("EPPO Table 7 layout changed: no monthly rows found")
+    out = pd.DataFrame(rows).drop_duplicates("month").set_index("month").sort_index()
+    out["diesel"] = out["diesel_b7"].combine_first(out["diesel_hd"])
     return out

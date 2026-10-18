@@ -146,13 +146,31 @@ Dubai for months after the last Pink Sheet release is estimated as the monthly a
 
 The oil-driven contribution to each index j months ahead sums the last 24 monthly shocks (including the nowcast) along the impulse response: Δy_{t+j} = Σ_k β_{j+k} shock_{t−k}. The household's extra spending per month in category c is spend × share_c × Δy_{c,t+j} / 100, with shares defaulting to the CPI weights (vehicles and fuel 15.9%, electricity/fuel/water 5.2%, public transport 1.6%, food 39.5%, everything else via core inflation). The 12-month total sums the first twelve months.
 
+The simple page's "still to come" figure is a price-level quantity: the further change in the level of each index from today caused by shocks already observed, Σ_k [ψ_{j+k} − ψ_k] shock_{t−k}, where ψ is the level response recovered from the year-on-year response by ψ_h = β_h for h < 12 and ψ_h = β_h + ψ_{h−12} from h = 12. That recursion needs the same-month response β_0, so horizon 0 is estimated with the rest (version 2.1; without it the level path dipped by β_0 × shock twelve months after each shock).
+
 ### Pump prices
 
 EPPO's price build-up gives, per product, the ex-refinery price, excise, municipal tax, Oil Fund and conservation fund levies, marketing margin and VAT. The levies and margin are fixed baht per litre, so the pump price moves with the ex-refinery price times 1.07 (VAT). The app applies the selected crude move per litre, times a user-chosen pass-through share representing Oil Fund cushioning.
 
 ### Pump-price stage and model combination
 
-A second local projection uses the monthly log change in a Bangkok retail fuel index (0.6 × diesel B7 + 0.4 × gasohol 95, EPPO Table 9, 2003 onward) as the shock. Because retail prices already contain excise changes and Oil Fund cushioning, this model conditions on policy as it actually happened. For months after the last published retail month, the index is taken from EPPO's daily price feed (monthly averages of the snapshots the sync accumulates); months without snapshots are interpolated in logs. The household estimate is the average of the pump-price model and the crude model; the displayed band is the envelope of their confidence intervals.
+A second local projection uses the monthly log change in a Bangkok retail fuel index (0.6 × diesel B7 + 0.4 × gasohol 95, EPPO Table 9, 2003 onward) as the shock. Because retail prices already contain excise changes and Oil Fund cushioning, this model conditions on policy as it actually happened. For months after the last published retail month, the index is taken from EPPO's daily price feed (monthly averages of the snapshots the sync accumulates); months without snapshots are interpolated in logs. On the simple page the pump-price model is the headline estimate (it dominates the backtest) and the crude model is shown as the alternative; the detailed page also offers their average, with a band equal to the envelope of the two confidence intervals.
+
+### Crude-to-pump first stage and what-if scenarios
+
+The pump-price shock is regressed on the current and three lagged crude (THB) shocks from 2003 with HAC errors. The cumulative coefficient is the three-month pass-through: 0.47 overall (s.e. 0.04), 0.53 for crude rises and 0.39 for falls, 0.64 in months when the diesel Oil Fund levy was negative (subsidy) and 0.45 when positive (EPPO Table 7). A what-if crude move of x% is converted to a pump move of 0.47x% and run through the pump-price model's responses, and the implied pump price change is today's pump price × (exp(0.47x/100) − 1). The current regime is read from the diesel Oil Fund levy in EPPO's daily price structure.
+
+### Household types
+
+The same local projections are estimated on TPSO's regional CPI (Bangkok and vicinity, Central, North, Northeast, South) and the low-income CPI (dataset `cpil`), each joined to the national shock series, with each type's own basket weights. Regional pump prices are not modelled; EPPO's Bangkok price is used for the fuel line.
+
+### Announced electricity tariff
+
+The ERC fixes the average electricity tariff for four-month periods. `data/ft_tariff.json` lists announced periods; for months ahead that an announcement covers, the electricity share of the electricity/fuel/water line (weight 3.68 of 5.18) is the announced change, and the model's own electricity increments take over after the last announced month. The file is maintained by hand because the ERC and EPPO pages are not machine-readable.
+
+### Refinements tested and rejected
+
+Both are kept behind configuration switches and evaluated with the same rolling backtest. (1) Regime-dependent responses: interacting the shock with the Oil Fund regime (`USE_REGIME`) roughly doubled the six-month RMSE, because each regime has too few months to pin down 24 horizons. (2) World food prices: adding the World Bank food price index change as a control (`USE_FOOD_CONTROL`) lowered the crude model's error but raised the pump-price model's, so it is off for the headline model.
 
 ### Rolling pseudo-out-of-sample evaluation
 

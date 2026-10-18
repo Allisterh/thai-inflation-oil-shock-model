@@ -5,7 +5,7 @@
     th: {
       brand: "น้ำมันกับค่าครองชีพ",
       h1: "น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท",
-      lede: "ตอบสี่ข้อสั้น ๆ แล้วเราจะบอกว่าตอนนี้คุณจ่ายเพิ่มไปแล้วเท่าไรเทียบกับปีก่อน จากราคาหน้าปั๊มจริงและดัชนีราคาของกระทรวงพาณิชย์ และยังมีอะไรตามมาอีกในเดือนข้างหน้า",
+      lede: "ตอบห้าข้อสั้น ๆ แล้วเราจะบอกว่าตอนนี้คุณจ่ายเพิ่มไปแล้วเท่าไรเทียบกับปีก่อน จากราคาหน้าปั๊มจริงและดัชนีราคาของกระทรวงพาณิชย์ และยังมีอะไรตามมาอีกในเดือนข้างหน้า",
       pumpFact: (d) => `${d.prod} หน้าปั๊มวันนี้ ${d.now} บาทต่อลิตร เทียบกับ ${d.ago} บาทเมื่อปีก่อน`,
       cpiFact: (m) => `ของแพงขึ้นจากปีก่อน (เงินเฟ้อ) ล่าสุดเดือน${m}`,
       oilFact: (d) => `น้ำมันดิบคิดเป็นเงินบาท เดือนนี้เทียบกับเดือนก่อน ข้อมูลถึง ${d}`,
@@ -13,7 +13,7 @@
       qFuel: "เติมน้ำมันเดือนละ", litres: "ลิตร", baht: "บาท", nowKicker: "วันนี้ เทียบกับปีก่อน", nextKicker: "ที่ยังตามมาอีก",
       copy: "คัดลอกผลลัพธ์", shareLine: "แชร์ทาง LINE", copied: "คัดลอกแล้ว",
       shareText: (d) => `น้ำมันแพงขึ้น ครอบครัวฉันจ่ายเพิ่มแล้วประมาณ ${d.now} บาทต่อเดือนเทียบกับปีก่อน และน่าจะตามมาอีกราว ${d.next} บาทต่อเดือน ลองคำนวณของคุณ: `,
-      whyCards: (d) => [[d.pump, `ราคาหน้าปั๊ม${d.prod}แพงขึ้นจากปีก่อน น้ำมันดิบที่โรงกลั่นไทยซื้อ (ดูไบ) คิดเป็นเงินบาท${d.dir}ประมาณ ${d.crude}`], [d.energy, `เมื่อน้ำมันดิบแพงขึ้น 10% ราคาพลังงานในไทยขึ้นราวนี้ภายในไม่กี่เดือน และของทั้งตะกร้าแพงขึ้นราว ${d.head} จากข้อมูลตั้งแต่ปี 2543`], [d.foodH, `เดือนที่ราคาอาหารขึ้นมากที่สุดหลังน้ำมันแพง อาหารและของอื่น ๆ ขึ้นช้ากว่าเพราะต้นทุนค่อย ๆ ส่งผ่าน แต่อยู่นานกว่า นี่คือส่วนที่ยังตามมาอีก`]],
+      whyCards: (d) => [[d.pump, `ราคาหน้าปั๊ม${d.prod} แพงขึ้นจากปีก่อน น้ำมันดิบที่โรงกลั่นไทยซื้อ (ดูไบ) คิดเป็นเงินบาท${d.dir}ประมาณ ${d.crude}`], [d.energy, `เมื่อน้ำมันดิบแพงขึ้น 10% ราคาพลังงานในไทยขึ้นราวนี้ภายในไม่กี่เดือน และของทั้งตะกร้าแพงขึ้นราว ${d.head} จากข้อมูลตั้งแต่ปี 2543`], [d.foodH, `เดือนที่ราคาอาหารขึ้นมากที่สุดหลังน้ำมันแพง อาหารและของอื่น ๆ ขึ้นช้ากว่าเพราะต้นทุนค่อย ๆ ส่งผ่าน แต่อยู่นานกว่า นี่คือส่วนที่ยังตามมาอีก`]],
       litresPerMonth: "ลิตรต่อเดือน", fuelType: "ชนิด",
       fuelNone: "ไม่มีรถ", fuelMoto: "มอเตอร์ไซค์", fuelCar: "รถยนต์", fuelHeavy: "ขับเยอะ",
       qFood: "ค่าอาหารและเครื่องดื่ม", qElec: "ค่าไฟ ก๊าซหุงต้ม น้ำประปา", qOther: "ค่าใช้จ่ายอื่น ๆ",
@@ -26,10 +26,10 @@
       idxFood: "อาหาร", idxElec: "ค่าไฟ ก๊าซ น้ำประปา", idxOther: "สินค้าทั่วไป (เงินเฟ้อพื้นฐาน)",
       nextLeadUp: "ยังไม่จบแค่นี้ อีกไม่กี่เดือนของน่าจะแพงขึ้นอีกประมาณ", nextLeadDown: "ข่าวดีคือ อีกไม่กี่เดือนราคาน่าจะลดลงนิดหน่อย ประมาณ",
       nextWhen: (d) => `นี่คือส่วนที่เพิ่มจากที่คุณจ่ายอยู่วันนี้ และจะหนักที่สุดราวเดือน${d.m}`,
-      nextRange: (d) => `ตัวเลขนี้มาจากแบบจำลองที่ใช้ราคาหน้าปั๊มจริง ซึ่งแม่นที่สุดในการทดสอบของเรา ถ้าคิดจากราคาน้ำมันดิบอย่างเดียวจะได้ ${d.alt} บาท และจากความคลาดเคลื่อนในอดีต ตัวเลขจริงมักห่างจากที่ประมาณไม่เกินราว ${d.err} บาทต่อเดือน`,
+      nextRange: (d) => `ตัวเลขนี้มาจากแบบจำลองที่ใช้ราคาหน้าปั๊มจริงและดัชนีราคา${d.where} ซึ่งแม่นที่สุดในการทดสอบของเรา ถ้าคิดจากราคาน้ำมันดิบอย่างเดียวจะได้ ${d.alt} บาท และจากความคลาดเคลื่อนในอดีต ตัวเลขจริงมักห่างจากที่ประมาณไม่เกินราว ${d.err} บาทต่อเดือน`,
       accuracy: (d) => `ส่วนนี้เป็นการประมาณ ใน 3 ปีที่ผ่านมา ตัวเลขล่วงหน้า 6 เดือนของเราคลาดจากของจริงราว ${d.rmse} จุดของอัตราเงินเฟ้อ ถ้าเดาว่าไม่มีอะไรเปลี่ยนจะคลาด ${d.naive} จุด`,
       whatifTitle: "แล้วถ้าน้ำมันดิบเปลี่ยนอีก", up10: "ขึ้นอีก 10%", up20: "ขึ้นอีก 20%", up50: "ขึ้นอีก 50%", down10: "ลดลง 10%",
-      whatif: (d) => `ถ้าน้ำมันดิบ${d.dir}จากตอนนี้ ครอบครัวคุณจะจ่าย${d.more}อีกราว ${d.peak} บาทต่อเดือนในช่วงที่หนักที่สุด และ${d.prod}จะ${d.pumpDir}ประมาณลิตรละ ${d.pump} บาท ถ้ารัฐไม่เข้ามาช่วยตรึงราคา`,
+      whatif: (d) => `ถ้าน้ำมันดิบ${d.dir} จากตอนนี้ ครอบครัวคุณจะจ่าย${d.more}อีกราว ${d.peak} บาทต่อเดือนในช่วงที่หนักที่สุด และ${d.prod} จะ${d.pumpDir}ประมาณลิตรละ ${d.pump} บาท ถ้ารัฐไม่เข้ามาช่วยตรึงราคา`,
       up: "ขึ้น", down: "ลง", moreWord: "เพิ่ม", lessWord: "น้อยลง", pumpUp: "แพงขึ้น", pumpDown: "ถูกลง",
       whyTitle: "ทำไมถึงเป็นแบบนี้",
       why1: (d) => `น้ำมันดิบที่โรงกลั่นไทยซื้อ (ดูไบ) คิดเป็นเงินบาท${d.dir}ประมาณ ${d.pct} ใน 12 เดือนที่ผ่านมา และราคาหน้าปั๊ม${d.prod}ขึ้นมาแล้ว ${d.pump} จากปีก่อน`,
@@ -39,12 +39,20 @@
       more: "ดูกราฟและรายละเอียดทั้งหมด", how: "อ่านวิธีคิดของเรา และทำไมถึงเชื่อถือได้",
       foot: (d) => `ข้อมูล: กระทรวงพาณิชย์ (ดัชนีราคาผู้บริโภค) สนพ. (ราคาน้ำมัน) ธนาคารโลก EIA อัปเดต ${d}`,
       loadError: "โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้ง",
+      qWhere: "คุณอยู่ที่ไหน", whereHint: "ใช้ดัชนีราคาของภาคคุณ หรือดัชนีผู้มีรายได้น้อย",
+      whereNational: "ทั่วประเทศ", whereBangkok: "กรุงเทพฯ และปริมณฑล", whereCentral: "ภาคกลาง", whereNorth: "ภาคเหนือ", whereNortheast: "ภาคอีสาน", whereSouth: "ภาคใต้", whereLow: "ครัวเรือนรายได้น้อย",
+      typeNote: (d) => `ตัวเลขอาหาร ค่าไฟ และของอื่น ๆ ใช้ดัชนีราคา${d.where} ส่วนราคาน้ำมันเป็นราคากรุงเทพฯ ของ สนพ. (ต่างจังหวัดแพงกว่าเล็กน้อยตามค่าขนส่ง)`,
+      elecKnown: (d) => `ค่าไฟ: กกพ. ประกาศแล้วว่าค่าไฟเฉลี่ยงวด ${d.period} อยู่ที่ ${d.tariff} บาทต่อหน่วย ${d.change} เราใช้ตัวเลขที่ประกาศนี้แทนแบบจำลองสำหรับค่าไฟจนถึงเดือน${d.until}`,
+      elecSame: "เท่าเดิมกับงวดก่อน", elecUp: (x) => `เพิ่มขึ้น ${x} จากงวดก่อน`, elecDown: (x) => `ลดลง ${x} จากงวดก่อน`,
+      whatifNote: (d) => `ทำไมไม่ขึ้นเต็ม: จากข้อมูลตั้งแต่ปี 2546 เมื่อน้ำมันดิบเปลี่ยน ราคาหน้าปั๊มในไทยขยับตามเพียงราว ${d.pt} ของการเปลี่ยนแปลงภายใน 3 เดือน ที่เหลือกองทุนน้ำมันและภาษีสรรพสามิตรับไว้ ${d.regime} เราคิดราคาหน้าปั๊มจากสัดส่วนนี้ แล้วจึงใช้แบบจำลองราคาหน้าปั๊มคำนวณผลต่อของอื่น ๆ`,
+      regimeSub: (d) => `ตอนนี้ (${d.date}) กองทุนน้ำมันกำลังอุดหนุนดีเซลอยู่ลิตรละ ${d.levy} บาท ในช่วงแบบนี้ที่ผ่านมาราคาหน้าปั๊มขยับตามน้ำมันดิบราว ${d.pt}`,
+      regimeCol: (d) => `ตอนนี้ (${d.date}) กองทุนน้ำมันกำลังเก็บเงินจากดีเซลลิตรละ ${d.levy} บาท ในช่วงแบบนี้ที่ผ่านมาราคาหน้าปั๊มขยับตามน้ำมันดิบราว ${d.pt}`,
       prod: { gasohol95: "แก๊สโซฮอล์ 95", gasohol91: "แก๊สโซฮอล์ 91", gasohol_e20: "แก๊สโซฮอล์ E20", diesel_b7: "ดีเซล" },
     },
     en: {
       brand: "Oil and the cost of living",
       h1: "Oil prices went up. How much more is your family paying each month?",
-      lede: "Answer four quick questions. We will show you how much more you are already paying than a year ago, using real pump prices and the government's official price figures, and what is likely to come next.",
+      lede: "Answer five quick questions. We will show you how much more you are already paying than a year ago, using real pump prices and the government's official price figures, and what is likely to come next.",
       pumpFact: (d) => `${d.prod} at the pump today: ${d.now} baht a litre. A year ago it was ${d.ago}.`,
       cpiFact: (m) => `How much more things cost than a year ago (inflation), as of ${m}`,
       oilFact: (d) => `Crude oil price in baht, this month compared with last month, up to ${d}`,
@@ -64,7 +72,7 @@
       idxFood: "Food", idxElec: "Electricity, gas and water", idxOther: "General goods",
       nextLeadUp: "On top of that, prices will probably go up by about another", nextLeadDown: "The good news: prices should come down a little, by about",
       nextWhen: (d) => `That is extra on top of what you pay today, and it will be at its worst around ${d.m}.`,
-      nextRange: (d) => `This comes from the model that uses real pump prices, the most accurate one in our testing. Working from crude oil alone gives ${d.alt} baht instead. Based on past errors, the real figure usually lands within about ${d.err} baht a month of this.`,
+      nextRange: (d) => `This comes from the model that uses real pump prices and the ${d.where} price index, the most accurate one in our testing. Working from crude oil alone gives ${d.alt} baht instead. Based on past errors, the real figure usually lands within about ${d.err} baht a month of this.`,
       accuracy: (d) => `This part is an estimate. Over the past 3 years, our 6-month estimates have usually been off by about ${d.rmse} percentage points on the inflation rate. Guessing "nothing will change" would have been off by ${d.naive}.`,
       whatifTitle: "What if oil prices move again?", up10: "Up another 10%", up20: "Up another 20%", up50: "Up another 50%", down10: "Down 10%",
       whatif: (d) => `If oil goes ${d.dir} from here, your family would pay about ${d.peak} baht a month ${d.more} at the worst point, and ${d.prod} would be about ${d.pump} baht a litre ${d.pumpDir}, unless the government steps in to hold prices down.`,
@@ -75,6 +83,14 @@
       more: "See all the charts and details", how: "Read how this works and why you can trust it",
       foot: (d) => `Sources: Ministry of Commerce (price index), Energy Policy and Planning Office (fuel prices), World Bank, US EIA. Updated ${d}`,
       loadError: "Could not load the data. Please try again.",
+      qWhere: "Where do you live?", whereHint: "Uses the price index for your region, or the low-income index",
+      whereNational: "Whole country", whereBangkok: "Bangkok area", whereCentral: "Central", whereNorth: "North", whereNortheast: "Northeast", whereSouth: "South", whereLow: "Low-income household",
+      typeNote: (d) => `Food, electricity and other items use the ${d.where} price index. Fuel uses EPPO's Bangkok pump price (upcountry is slightly higher because of transport).`,
+      elecKnown: (d) => `Electricity: the regulator has already set the average tariff for ${d.period} at ${d.tariff} baht a unit, ${d.change}. We use that announced figure instead of the model for electricity up to ${d.until}.`,
+      elecSame: "the same as the previous period", elecUp: (x) => `up ${x} on the previous period`, elecDown: (x) => `down ${x} on the previous period`,
+      whatifNote: (d) => `Why not the full amount: since 2003, when crude oil moves, Thai pump prices have followed only about ${d.pt} of the move within three months. The Oil Fund and excise changes absorb the rest. ${d.regime} We work out the pump price from that share, then use the pump-price model for everything else.`,
+      regimeSub: (d) => `Right now (${d.date}) the Oil Fund is subsidising diesel by ${d.levy} baht a litre. In periods like this, pump prices followed about ${d.pt} of crude moves.`,
+      regimeCol: (d) => `Right now (${d.date}) the Oil Fund is collecting ${d.levy} baht a litre on diesel. In periods like this, pump prices followed about ${d.pt} of crude moves.`,
       prod: { gasohol95: "Gasohol 95", gasohol91: "Gasohol 91", gasohol_e20: "Gasohol E20", diesel_b7: "Diesel" },
     },
   };
@@ -97,7 +113,9 @@
   const FOOD = [4000, 8000, 12000, 20000], ELEC = [500, 1000, 2000, 4000], OTHER = [5000, 8000, 15000, 25000];
   const WHATIF = [["up10", 10], ["up20", 20], ["up50", 50], ["down10", -10]];
   const PRODUCTS = ["gasohol95", "gasohol91", "gasohol_e20", "diesel_b7"];
-  let D = null; const state = { litres: 80, product: "gasohol95", food: 8000, elec: 1000, other: 8000, whatif: 10 };
+  const WHERE = [["national", "whereNational"], ["bangkok", "whereBangkok"], ["central", "whereCentral"], ["north", "whereNorth"], ["northeast", "whereNortheast"], ["south", "whereSouth"], ["low_income", "whereLow"]];
+  let D = null; const state = { litres: 80, product: "gasohol95", food: 8000, elec: 1000, other: 8000, whatif: 10, where: "national" };
+  try { const w = localStorage.getItem("where"); if (w) state.where = w; } catch (e) {}
 
   // ---- helpers
   function chips(container, items, current, onPick) {
@@ -115,34 +133,56 @@
   const pumpAgo = () => { const c = D.retail.compare[state.product] || D.retail.compare.gasohol95; return c ? c.year_ago : null; };
   // spend by item, in baht per month
   const spends = () => ({ fuel: state.litres * pumpNow(), food: state.food, elec: state.elec, other: state.other });
-  const ITEMS = [["fuel", "vehicles_fuel", "itemFuel"], ["food", "food", "itemFood"], ["elec", "electricity_fuel_water", "itemElec"], ["other", "core", "itemOther"]];
-  // extra baht per month at each horizon for a set of paths, net of what is already in prices (now_pp)
-  function ahead(proj) {
+  // Household type: regional CPI or the low-income CPI. Each has its own latest inflation figures and its
+  // own response curves (estimated in the pipeline); national is the fallback.
+  const typ = () => (D.types && (D.types[state.where] || D.types.national)) || null;
+  const cpiNow = () => (typ() ? typ().cpi_latest : D.cpi_latest);
+  const MODEL = () => (D.projections.retail_fuel ? "retail_fuel" : D.model.primary_shock);
+  // Fuel uses the fuel-only index (TPSO 52200) rather than the wider "vehicles and fuel" group.
+  const ITEMS = [["fuel", "fuel", "itemFuel", "vehicles_fuel"], ["food", "food", "itemFood"], ["elec", "electricity_fuel_water", "itemElec"], ["other", "core", "itemOther"]];
+  const levelPaths = (key) => { const ty = typ(); if (ty && ty.projections[key]) return ty.projections[key].level_ahead_pct; return D.projections[key].observed_mtd.level_ahead_pct; };
+  // Electricity: where the regulator has already announced the tariff, that known change replaces the
+  // model for the electricity share of the "electricity, gas, water" group; the model takes over after.
+  function elecPath(lv) {
+    const grp = lv.electricity_fuel_water; if (!grp) return { path: null, covered: 0 };
+    const ft = D.electricity_tariff; const el = lv.electricity || grp;
+    if (!ft || !ft.months_covered) return { path: grp, covered: 0 };
+    const w = (typ() && typ().weights) || D.weights; const we = w && w.electricity && w.electricity_fuel_water ? w.electricity / w.electricity_fuel_water : 0.7;
+    const known = ft.known_change_pct, n = known.length;
+    const path = grp.map((g, i) => { const e = i < n ? known[i] : known[n - 1] + (el[i] - el[n - 1]); return we * e + (1 - we) * g; });
+    return { path, covered: n };
+  }
+  function ahead(key) {
     // further price-level change from today (percent) × what the household spends on each item
-    const sp = spends(); const total = new Array(24).fill(0); const rows = {};
-    ITEMS.forEach(([item, oc]) => {
-      const lv = proj.level_ahead_pct && proj.level_ahead_pct[oc]; if (!lv) return;
-      rows[item] = lv.map((pct) => sp[item] * pct / 100); rows[item].forEach((v, i) => { total[i] += v; });
+    const lv = levelPaths(key); const sp = spends(); const total = new Array(24).fill(0); const rows = {};
+    ITEMS.forEach(([item, oc, , alt]) => {
+      let p = item === "elec" ? elecPath(lv).path : (lv[oc] || (alt && lv[alt])); if (!p) return;
+      rows[item] = p.map((pct) => sp[item] * pct / 100); rows[item].forEach((v, i) => { total[i] += v; });
     });
     const peak = total.slice(0, 12).reduce((a, b) => (Math.abs(b) > Math.abs(a) ? b : a), total[0]); const peakH = total.indexOf(peak) + 1;
     return { total, rows, peak, peakH };
   }
+  // What-if: a crude move is chained through the estimated crude -> pump pass-through, then through the
+  // pump-price model (the most accurate one in testing). Falls back to the crude model if either is missing.
+  const passThrough = () => (D.pass_through && D.pass_through.all ? D.pass_through.all.cumulative : null);
   function scenario(pct) {
-    const irfs = D.irfs[D.model.primary_shock]; const sp = spends(); const total = new Array(24).fill(0);
-    ITEMS.forEach(([item, oc]) => { if (irfs[oc]) irfs[oc].forEach((r, i) => { total[i] += sp[item] * r.beta * pct / 100; }); });
-    const peak = total.slice(0, 12).reduce((a, b) => (Math.abs(b) > Math.abs(a) ? b : a), total[0]); return { peak };
+    const pt = passThrough(); const key = pt != null && D.irfs.retail_fuel ? "retail_fuel" : D.model.primary_shock;
+    const irfs = D.irfs[key]; const eff = key === "retail_fuel" ? pct * pt : pct; const sp = spends(); const total = new Array(24).fill(0);
+    ITEMS.forEach(([item, oc, , alt]) => { const irf = irfs[oc] || (alt && irfs[alt]); if (irf) irf.forEach((r, i) => { total[i] += sp[item] * r.beta * eff / 100; }); });
+    const peak = total.slice(0, 12).reduce((a, b) => (Math.abs(b) > Math.abs(a) ? b : a), total[0]); return { peak, pumpPct: eff, chained: key === "retail_fuel" };
   }
+  const whereLabel = () => t(WHERE.find(([k]) => k === state.where)[1]);
 
   function render() {
     document.documentElement.lang = lang; document.title = t("brand");
     document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
     $("langToggle").textContent = lang === "th" ? "EN" : "ไทย";
     if (!D) return;
-    const c = D.current, nc = c.nowcast, cpi = D.cpi_latest, r = D.retail; const pn = pumpNow(), pa = pumpAgo(); const pname = T[lang].prod[state.product];
+    const c = D.current, nc = c.nowcast, cpi = cpiNow(), r = D.retail; const pn = pumpNow(), pa = pumpAgo(); const pname = T[lang].prod[state.product];
     // facts
     $("dateline").textContent = t("asOf", dateLabel((D.generated_at || "").slice(0, 10)));
     const dl = pn - pa; const f = $("fPump"); f.textContent = signed(dl, 2); f.classList.toggle("neg", dl < 0); $("fPumpText").textContent = t("pumpFact", { prod: pname, now: num(pn, 2), ago: num(pa, 2) });
-    $("fCpi").textContent = signed(cpi.headline_yoy, 1, "%"); $("fCpiText").textContent = t("cpiFact", mLabel(cpi.month));
+    $("fCpi").textContent = signed(D.cpi_latest.headline_yoy, 1, "%"); $("fCpiText").textContent = t("cpiFact", mLabel(D.cpi_latest.month));
     const s = c.shock_mtd_pct; const fo = $("fOil"); fo.textContent = signed(s, 1, "%"); fo.classList.toggle("neg", s < 0); $("fOilText").textContent = t("oilFact", dateLabel(nc.brent_latest_date));
     // inputs
     chips($("fuelChips"), FUEL_PRESETS.map(([k, v]) => [t(k), v]), state.litres, (v) => { state.litres = v; $("litres").value = v; });
@@ -150,6 +190,7 @@
     chips($("foodChips"), FOOD.map((v) => [num(v), v]), state.food, (v) => { state.food = v; $("food").value = v; });
     chips($("elecChips"), ELEC.map((v) => [num(v), v]), state.elec, (v) => { state.elec = v; $("elec").value = v; });
     chips($("otherChips"), OTHER.map((v) => [num(v), v]), state.other, (v) => { state.other = v; $("other").value = v; });
+    chips($("whereChips"), WHERE.filter(([k]) => !D.types || D.types[k]).map(([k, lab]) => [t(lab), k]), state.where, (v) => { state.where = v; try { localStorage.setItem("where", v); } catch (e) {} });
     // ---- already happened (real data)
     const sp = spends(); const total = sp.fuel + sp.food + sp.elec + sp.other;
     const now = {
@@ -162,6 +203,7 @@
     $("nowLead").textContent = nowTotal >= 0 ? t("nowLead") : t("nowLeadLess");
     const big = $("nowTotal"); big.textContent = num(round10(Math.abs(nowTotal))); big.className = nowTotal >= 0 ? "up" : "down";
     $("nowNote").textContent = t("nowNote", { total: num(total), pct: num(100 * nowTotal / Math.max(1, total), 1) + "%", m: mLabel(cpi.month) });
+    $("typeNote").textContent = t("typeNote", { where: whereLabel() });
     bars($("nowBars"), [
       { label: t("itemFuel"), note: t("noteFuel", { prod: pname, ago: num(pa, 2), now: num(pn, 2), l: num(state.litres) }), value: now.fuel },
       { label: t("itemFood"), note: t("noteIdx", { what: t("idxFood"), pct: signed(cpi.food_yoy, 1, "%") }), value: now.food },
@@ -170,24 +212,39 @@
     ]);
     // ---- still to come. The pump-price model is the headline estimate: in the rolling backtest it
     // beats both the crude model and their average on every measure. Crude is shown as the alternative.
-    const key = D.projections.retail_fuel ? "retail_fuel" : D.model.primary_shock;
-    const ah = ahead(D.projections[key].observed_mtd);
+    const key = MODEL();
+    const ah = ahead(key);
     const months = Array.from({ length: 24 }, (_, i) => addMonths(c.month, i + 1));
     $("nextLead").textContent = ah.peak >= 0 ? t("nextLeadUp") : t("nextLeadDown");
     const nb = $("nextTotal"); nb.textContent = num(round10(Math.abs(ah.peak))); nb.className = ah.peak >= 0 ? "up" : "down";
     $("nextWhen").textContent = t("nextWhen", { m: mLabel(months[ah.peakH - 1]), total: num(round10(nowTotal + ah.peak)) });
     if (D.projections.retail_fuel) {
-      const b = ahead(D.projections[D.model.primary_shock].observed_mtd).total[ah.peakH - 1];
+      const b = ahead(D.model.primary_shock).total[ah.peakH - 1];
       const r6 = D.backtests && D.backtests.retail_fuel ? D.backtests.retail_fuel.headline.by_h.find((x) => x.h === 6) : null;
-      $("nextRange").textContent = t("nextRange", { alt: num(round10(b)), err: num(round10(0.01 * total * (r6 ? r6.rmse : 1))) });
+      $("nextRange").textContent = t("nextRange", { alt: num(round10(b)), err: num(round10(0.01 * total * (r6 ? r6.rmse : 1))), where: whereLabel() });
     }
+    const ft = D.electricity_tariff;
+    if (ft && ft.months_covered) {
+      const ch = ft.change_from_previous_pct; const chTxt = ch == null ? "" : Math.abs(ch) < 0.05 ? t("elecSame") : ch > 0 ? t("elecUp", num(ch, 1) + "%") : t("elecDown", num(Math.abs(ch), 1) + "%");
+      const per = lang === "th" ? `${mLabel(ft.current.start)} ถึง ${mLabel(ft.current.end)}` : `${mLabel(ft.current.start)} to ${mLabel(ft.current.end)}`;
+      $("nextElec").textContent = t("elecKnown", { period: per, tariff: num(ft.current.tariff_thb_per_kwh, 2), change: chTxt, until: mLabel(ft.covered_until) });
+    } else { $("nextElec").textContent = ""; }
     bars($("nextBars"), ITEMS.map(([item, oc, lab]) => ({ label: t(lab), value: ah.rows[item] ? ah.rows[item][ah.peakH - 1] : 0 })));
     const bt = D.backtests && (D.backtests.retail_fuel || D.backtests[D.model.primary_shock]); if (bt) { const r6 = bt.headline.by_h.find((x) => x.h === 6); if (r6) $("nextAccuracy").textContent = t("accuracy", { rmse: num(r6.rmse, 1), naive: num(r6.rmse_no_change, 1) }); }
     // ---- what if
     chips($("whatifChips"), WHATIF.map(([k, v]) => [t(k), v]), state.whatif, (v) => { state.whatif = v; });
     const sc = scenario(state.whatif);
-    const perL = nc.dubai_spot_nowcast_thb / 158.987; const dPump = perL * (Math.exp(state.whatif / 100) - 1) * 1.07;
+    const pt = passThrough();
+    const dPump = sc.chained ? pn * (Math.exp(sc.pumpPct / 100) - 1) : (nc.dubai_spot_nowcast_thb / 158.987) * (Math.exp(state.whatif / 100) - 1) * 1.07;
     $("whatifAnswer").textContent = t("whatif", { dir: `${t(state.whatif > 0 ? "up" : "down")} ${num(Math.abs(state.whatif))}%`, more: sc.peak >= 0 ? t("moreWord") : t("lessWord"), peak: num(round10(Math.abs(sc.peak))), prod: pname, pump: num(Math.abs(dPump), 1), pumpDir: dPump >= 0 ? t("pumpUp") : t("pumpDown") });
+    if (sc.chained) {
+      const rg = D.regime_now; let regime = "";
+      if (rg && rg.diesel_levy_thb_per_litre != null && D.pass_through) {
+        const sub = D.pass_through[rg.subsidy ? "subsidy" : "collecting"];
+        regime = t(rg.subsidy ? "regimeSub" : "regimeCol", { date: dateLabel(rg.date), levy: num(Math.abs(rg.diesel_levy_thb_per_litre), 2), pt: sub ? num(100 * sub.cumulative, 0) + "%" : "–" });
+      }
+      $("whatifNote").textContent = t("whatifNote", { pt: num(100 * pt, 0) + "%", regime });
+    } else { $("whatifNote").textContent = ""; }
     // ---- why
     const irfs = D.irfs[D.model.primary_shock]; const pk = (oc) => irfs[oc].reduce((a, b) => (b.beta > a.beta ? b : a), irfs[oc][0]);
     const yoy = c.dubai_thb_yoy_pct;

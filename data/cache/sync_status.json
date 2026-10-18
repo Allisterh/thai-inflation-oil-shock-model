@@ -1,5 +1,5 @@
 {
-  "synced_at": "2026-10-18T13:29:12+00:00",
+  "synced_at": "2026-10-18T18:23:39+00:00",
   "tpso_cpi": {
     "name": "tpso_cpi",
     "source": "TPSO Index API (cpig/filter)",
@@ -9,7 +9,7 @@
     "n_obs": 609,
     "from_cache": false,
     "errors": [],
-    "note": null,
+    "note": "TPSO lastUpdated unchanged; cache reused",
     "last_updated": "2026-10-06T04:32:39.514018Z"
   },
   "crude_monthly": {
@@ -21,7 +21,7 @@
     "n_obs": 801,
     "from_cache": false,
     "errors": [],
-    "note": "https://thedocs.worldbank.org/en/doc/74e8be41ceb20fa0da750cda2f6b9e4e-0050012026/related/CMO-Historical-Data-Monthly.xlsx"
+    "note": "cache is fresh"
   },
   "usdthb_monthly_imf": {
     "name": "usdthb_monthly_imf",
@@ -32,7 +32,7 @@
     "n_obs": 823,
     "from_cache": false,
     "errors": [],
-    "note": null
+    "note": "cache is fresh"
   },
   "brent_daily": {
     "name": "brent_daily",
@@ -43,7 +43,7 @@
     "n_obs": 9108,
     "from_cache": false,
     "errors": [],
-    "note": null
+    "note": "cache is fresh"
   },
   "usdthb_daily": {
     "name": "usdthb_daily",
@@ -54,12 +54,12 @@
     "n_obs": 6858,
     "from_cache": false,
     "errors": [],
-    "note": null
+    "note": "cache is fresh"
   },
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",
     "source": "EPPO oil-prices JSON",
-    "fetched_at": "2026-10-18T13:29:31+00:00",
+    "fetched_at": "2026-10-18T18:23:42+00:00",
     "first_obs": "2026-10-09",
     "last_obs": "2026-10-09",
     "n_obs": 1,
@@ -70,7 +70,7 @@
   "eppo_price_structure": {
     "name": "eppo_price_structure",
     "source": "EPPO oil-structure-prices JSON",
-    "fetched_at": "2026-10-18T13:29:31+00:00",
+    "fetched_at": "2026-10-18T18:23:42+00:00",
     "first_obs": null,
     "last_obs": "2026-10-15",
     "n_obs": 1,
@@ -87,6 +87,40 @@
     "n_obs": 284,
     "from_cache": false,
     "errors": [],
-    "note": null
+    "note": "cache is fresh"
+  },
+  "tpso_cpi_types": {
+    "name": "tpso_cpi_types",
+    "source": "TPSO Index API (regions + low income)",
+    "fetched_at": "2026-10-18T18:04:58+00:00",
+    "first_obs": null,
+    "last_obs": null,
+    "n_obs": 0,
+    "from_cache": false,
+    "errors": [],
+    "note": "TPSO lastUpdated unchanged; cache reused",
+    "last_updated": "2026-10-06T04:32:39.514018Z"
+  },
+  "oil_fund_monthly": {
+    "name": "oil_fund_monthly",
+    "source": "EPPO petroleum price statistics, Table 7",
+    "fetched_at": "2026-10-18T18:04:58+00:00",
+    "first_obs": "2001-01",
+    "last_obs": "2026-08",
+    "n_obs": 308,
+    "from_cache": false,
+    "errors": [],
+    "note": "cache is fresh"
+  },
+  "food_index_monthly": {
+    "name": "food_index_monthly",
+    "source": "World Bank Pink Sheet food index",
+    "fetched_at": "2026-10-18T18:04:59+00:00",
+    "first_obs": "1960-01",
+    "last_obs": "2026-09",
+    "n_obs": 801,
+    "from_cache": false,
+    "errors": [],
+    "note": "cache is fresh"
   }
 }

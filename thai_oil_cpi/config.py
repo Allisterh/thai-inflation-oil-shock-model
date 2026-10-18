@@ -27,11 +27,15 @@ EPPO_RETAIL_HISTORY_CSV = CACHE_DIR / "eppo_retail_monthly.csv"
 EPPO_RETAIL_DAILY_CSV = CACHE_DIR / "eppo_retail_daily.csv"
 EPPO_STRUCTURE_JSON = CACHE_DIR / "eppo_price_structure.json"
 EPPO_STRUCTURE_HISTORY_CSV = CACHE_DIR / "eppo_price_structure_history.csv"
+OIL_FUND_CSV = CACHE_DIR / "eppo_oil_fund_monthly.csv"
+FOOD_INDEX_CSV = CACHE_DIR / "worldbank_food_index_monthly.csv"
+TPSO_TYPES_CSV = CACHE_DIR / "tpso_cpi_types_long.csv"
+FT_TARIFF_JSON = DATA_DIR / "ft_tariff.json"
 SYNC_STATUS_JSON = CACHE_DIR / "sync_status.json"
 
 # Monthly local-projection specification.
 SAMPLE_START = os.environ.get("THAI_OIL_CPI_SAMPLE_START", "2000-01")
-HORIZONS_M = list(range(1, 25))
+HORIZONS_M = list(range(0, 25))   # h = 0 (same month) is needed to turn year-on-year responses into price-level paths
 LAGS_M = 12
 # Legacy quarterly specification (notebooks/analysis.ipynb).
 HORIZONS_Q = list(range(1, 9))
@@ -40,7 +44,7 @@ HAC_EXTRA_LAGS = 1
 CONF_Z = 1.96
 
 # Outcomes (TPSO series names from sources.tpso.CODES) and shock variants.
-OUTCOMES = ["headline", "energy", "vehicles_fuel", "electricity_fuel_water", "public_transport", "food", "core"]
+OUTCOMES = ["headline", "energy", "vehicles_fuel", "fuel", "electricity_fuel_water", "electricity", "public_transport", "food", "core"]
 SHOCKS = {"dubai_thb": "shock_dubai_thb", "retail_fuel": "shock_retail_fuel", "dubai_usd": "shock_dubai_usd", "brent_usd": "shock_brent_usd"}
 # Retail fuel index weights (share of road-fuel volume): diesel dominates in Thailand.
 RETAIL_FUEL_WEIGHTS = {"diesel": 0.6, "gasoline": 0.4}
@@ -48,6 +52,14 @@ PRIMARY_SHOCK = "dubai_thb"          # used for what-if scenarios and the asymme
 COMBINED_SHOCKS = ("retail_fuel", "dubai_thb")  # averaged for the headline household estimate
 DISPLAY_DEFAULT = "combined"
 BACKTEST_ORIGINS = 36
+# Model refinements (each evaluated in the rolling backtest; see docs/methodology.md).
+USE_FOOD_CONTROL = False     # tested: helps the crude model, hurts the pump-price model; off (see methodology)
+USE_REGIME = False           # tested: splitting the 24-horizon response by regime doubled the error; off
+REGIME_SHOCK = "dubai_thb"
+# Household types: TPSO general CPI by region plus the low-income CPI.
+CPI_TYPES = {"national": ("cpig", "TG"), "bangkok": ("cpig", "10"), "central": ("cpig", "CC"),
+             "north": ("cpig", "NN"), "northeast": ("cpig", "EE"), "south": ("cpig", "SS"),
+             "low_income": ("cpil", "TL")}
 
 # Sync behaviour.
 DEFAULT_MAX_AGE_HOURS = float(os.environ.get("THAI_OIL_CPI_MAX_AGE_HOURS", "12"))

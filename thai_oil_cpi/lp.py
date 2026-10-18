@@ -120,3 +120,62 @@ def local_projections_asymmetric(y: pd.Series, x: pd.Series, spec: LPSpec | None
         irf["significant"] = (irf["lower"] > 0) | (irf["upper"] < 0)
         out[key] = irf
     return out
+
+
+def local_projections_ext(y: pd.Series, x: pd.Series, spec: LPSpec | None = None,
+                          controls: pd.DataFrame | None = None, regime: pd.Series | None = None) -> dict:
+    """Local projections with optional controls and a two-regime shock.
+
+    controls : extra regressors entered contemporaneously and with ``spec.lags_x`` lags
+               (e.g. the log change in a world food price index).
+    regime   : 0/1 series aligned with ``x``. When given, the shock enters as x·regime and
+               x·(1−regime) with separate lags, and the regime indicator itself is a control,
+               so β is estimated separately for the two states.
+
+    Returns {'all': irf} without a regime, or {'regime1': irf, 'regime0': irf} with one.
+    """
+    spec = spec or LPSpec()
+    df = pd.DataFrame({"y": y.astype(float), "x": x.astype(float)})
+    if controls is not None:
+        for c in controls.columns:
+            df[f"c_{c}"] = controls[c].astype(float)
+    if regime is not None:
+        df["r"] = regime.astype(float)
+    df = df.dropna()
+    shock_cols = []
+    if regime is not None:
+        df["x1"] = df["x"] * df["r"]; df["x0"] = df["x"] * (1 - df["r"]); shock_cols = ["x1", "x0"]
+    else:
+        shock_cols = ["x"]
+    cols = list(shock_cols)
+    for k in range(1, spec.lags_y + 1):
+        df[f"y_lag{k}"] = df["y"].shift(k); cols.append(f"y_lag{k}")
+    for sc in shock_cols:
+        for k in range(1, spec.lags_x + 1):
+            df[f"{sc}_lag{k}"] = df[sc].shift(k); cols.append(f"{sc}_lag{k}")
+    if regime is not None:
+        cols.append("r")
+    ctrl_cols = [c for c in df.columns if c.startswith("c_")]
+    for c in ctrl_cols:
+        cols.append(c)
+        for k in range(1, spec.lags_x + 1):
+            df[f"{c}_lag{k}"] = df[c].shift(k); cols.append(f"{c}_lag{k}")
+    out_rows = {sc: [] for sc in shock_cols}
+    for h in spec.horizons:
+        tmp = df.copy(); tmp["y_lead"] = tmp["y"].shift(-h); tmp = tmp[["y_lead"] + cols].dropna()
+        if len(tmp) <= len(cols) + 2:
+            for sc in shock_cols:
+                out_rows[sc].append({"h": h, "beta": np.nan, "se": np.nan, "n": int(len(tmp)), "tstat": np.nan, "pvalue": np.nan})
+            continue
+        res = sm.OLS(tmp["y_lead"], sm.add_constant(tmp[cols])).fit(cov_type="HAC", cov_kwds={"maxlags": h + spec.hac_extra_lags})
+        for sc in shock_cols:
+            out_rows[sc].append({"h": h, "beta": float(res.params[sc]), "se": float(res.bse[sc]), "n": int(res.nobs),
+                                 "tstat": float(res.tvalues[sc]), "pvalue": float(res.pvalues[sc])})
+    out = {}
+    names = {"x": "all", "x1": "regime1", "x0": "regime0"}
+    for sc, rows in out_rows.items():
+        irf = pd.DataFrame(rows)
+        irf["lower"] = irf["beta"] - spec.conf_z * irf["se"]; irf["upper"] = irf["beta"] + spec.conf_z * irf["se"]
+        irf["significant"] = (irf["lower"] > 0) | (irf["upper"] < 0)
+        out[names[sc]] = irf
+    return out

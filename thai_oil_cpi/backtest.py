@@ -14,11 +14,27 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
-from .lp import LPSpec, local_projections
+from .lp import LPSpec, local_projections, local_projections_ext
 
 
-def _oil_component(irf: pd.DataFrame, shocks: pd.Series, at: pd.Period) -> float:
-    """Σ_{h=1..H} β_h · shock_{at−h}: the oil-driven level of the outcome at month ``at``."""
+def _oil_component(irf, shocks: pd.Series, at: pd.Period, regime: pd.Series | None = None) -> float:
+    """Σ_{h=1..H} β_h · shock_{at−h}: the oil-driven level of the outcome at month ``at``.
+
+    ``irf`` is a DataFrame, or {'regime1': df, 'regime0': df} in which case β is taken from the
+    regime that prevailed in the month of each shock.
+    """
+    if isinstance(irf, dict):
+        b1 = {int(r.h): float(r.beta) for r in irf["regime1"].itertuples()}
+        b0 = {int(r.h): float(r.beta) for r in irf["regime0"].itertuples()}
+        total = 0.0
+        for h in b1:
+            m = at - h
+            if m in shocks.index and not math.isnan(shocks[m]):
+                rg = regime[m] if regime is not None and m in regime.index and not math.isnan(regime[m]) else 0.0
+                b = b1[h] if rg >= 0.5 else b0[h]
+                if not math.isnan(b):
+                    total += b * shocks[m]
+        return total
     beta = {int(r.h): float(r.beta) for r in irf.itertuples()}
     total = 0.0
     for h, b in beta.items():
@@ -29,11 +45,15 @@ def _oil_component(irf: pd.DataFrame, shocks: pd.Series, at: pd.Period) -> float
 
 
 def rolling_backtest(monthly: pd.DataFrame, shock_col: str, outcome: str = "headline", spec: LPSpec | None = None,
-                     sample_start: str = C.SAMPLE_START, origins: int = 36, horizons=(1, 3, 6, 12)) -> dict:
+                     sample_start: str = C.SAMPLE_START, origins: int = 36, horizons=(1, 3, 6, 12),
+                     control_cols: list | None = None, regime_col: str | None = None) -> dict:
     spec = spec or LPSpec(horizons=list(C.HORIZONS_M), lags_y=C.LAGS_M, lags_x=C.LAGS_M, hac_extra_lags=C.HAC_EXTRA_LAGS)
     ycol = f"yoy_{outcome}"
-    df = monthly[monthly.index >= pd.Period(sample_start, freq="M")][[ycol, shock_col]].dropna()
+    extra = [c for c in (control_cols or []) if c in monthly] + ([regime_col] if regime_col and regime_col in monthly else [])
+    df = monthly[monthly.index >= pd.Period(sample_start, freq="M")][[ycol, shock_col] + extra].dropna()
     y, x = df[ycol], df[shock_col]
+    ctrl = df[[c for c in (control_cols or []) if c in df]] if control_cols else None
+    reg = df[regime_col] if regime_col and regime_col in df else None
     last = df.index[-1]
     hmax = max(horizons)
     rows = []
@@ -42,13 +62,19 @@ def rolling_backtest(monthly: pd.DataFrame, shock_col: str, outcome: str = "head
         if T <= df.index[0] + 60:
             continue
         fit = df[df.index <= T]
-        irf = local_projections(fit[ycol], fit[shock_col], spec)
-        base = _oil_component(irf, x, T)
+        if ctrl is not None or reg is not None:
+            res = local_projections_ext(fit[ycol], fit[shock_col], spec,
+                                        controls=ctrl.loc[fit.index] if ctrl is not None else None,
+                                        regime=reg.loc[fit.index] if reg is not None else None)
+            irf = res if "regime1" in res else res["all"]
+        else:
+            irf = local_projections(fit[ycol], fit[shock_col], spec)
+        base = _oil_component(irf, x, T, reg)
         for j in horizons:
             Tj = T + j
             if Tj not in y.index:
                 continue
-            proj = _oil_component(irf, x, Tj) - base
+            proj = _oil_component(irf, x, Tj, reg) - base
             actual = float(y[Tj] - y[T])
             rows.append({"origin": str(T), "h": j, "projected": proj, "actual": actual})
     res = pd.DataFrame(rows)
