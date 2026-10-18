@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>น้ำมันกับค่าครองชีพ</title>
 <meta name="description" content="น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท คำนวณจากราคาหน้าปั๊มจริง ดัชนีราคาผู้บริโภคของกระทรวงพาณิชย์ และราคาน้ำมันดิบวันนี้">
+<meta property="og:title" content="น้ำมันกับค่าครองชีพ">
+<meta property="og:description" content="น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท ตอบ 4 ข้อแล้วรู้ทันที">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231d2624%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-weight=%27700%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5c543%27%3E฿%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,57 +25,69 @@
 <main class="wrap">
   <section class="hero">
     <h1 data-i18n="h1">น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท</h1>
-    <p class="lede" data-i18n="lede">ตอบสี่ข้อสั้น ๆ แล้วเราจะบอกว่าตอนนี้คุณจ่ายเพิ่มไปแล้วเท่าไรเทียบกับปีก่อน จากราคาหน้าปั๊มจริงและดัชนีราคาของกระทรวงพาณิชย์ และยังมีอะไรตามมาอีกในเดือนข้างหน้า</p>
+    <p class="lede" data-i18n="lede">ตอบสี่ข้อสั้น ๆ แล้วรู้ทันทีว่าตอนนี้คุณจ่ายเพิ่มไปแล้วเท่าไรเทียบกับปีก่อน จากราคาหน้าปั๊มจริงและดัชนีราคาของกระทรวงพาณิชย์ และยังมีอะไรตามมาอีก</p>
   </section>
 
-  <section class="facts" aria-label="today">
-    <div class="fact"><span class="fact-value" id="fPump">–</span><span class="fact-text" id="fPumpText"></span></div>
-    <div class="fact"><span class="fact-value" id="fCpi">–</span><span class="fact-text" id="fCpiText"></span></div>
-    <div class="fact"><span class="fact-value" id="fOil">–</span><span class="fact-text" id="fOilText"></span></div>
+  <section class="facts-wrap">
+    <div class="facts-head"><span data-i18n="factsTitle">ตัวเลขวันนี้</span><span id="factsDate"></span></div>
+    <div class="facts" aria-label="today">
+      <div class="fact"><span class="fact-value" id="fPump">–</span><span class="fact-text" id="fPumpText"></span></div>
+      <div class="fact"><span class="fact-value" id="fCpi">–</span><span class="fact-text" id="fCpiText"></span></div>
+      <div class="fact"><span class="fact-value" id="fOil">–</span><span class="fact-text" id="fOilText"></span></div>
+    </div>
   </section>
 
-  <section class="ask">
-    <div class="q">
-      <h2 data-i18n="qFuel">เติมน้ำมันเดือนละกี่ลิตร</h2>
-      <div class="chips" id="fuelChips"></div>
-      <div class="inline-fields">
-        <label class="big-field"><input id="litres" type="number" inputmode="numeric" min="0" step="10" value="80"> <span data-i18n="litresPerMonth">ลิตรต่อเดือน</span></label>
-        <label class="big-field"><span data-i18n="fuelType">ชนิด</span> <select id="fuelType"></select></label>
+  <section class="panel" aria-labelledby="panelTitle">
+    <h2 id="panelTitle" data-i18n="panelTitle">ครอบครัวคุณ</h2>
+    <div class="qrow">
+      <div class="qlabel"><span data-i18n="qFuel">เติมน้ำมันเดือนละ</span></div>
+      <div class="qctl">
+        <div class="chips" id="fuelChips"></div>
+        <div class="inline-fields">
+          <label class="mini"><input id="litres" type="number" inputmode="numeric" min="0" step="10" value="80"> <span data-i18n="litres">ลิตร</span></label>
+          <label class="mini"><select id="fuelType"></select></label>
+        </div>
       </div>
     </div>
-    <div class="q">
-      <h2 data-i18n="qFood">ค่าอาหารและเครื่องดื่มเดือนละประมาณ</h2>
-      <div class="chips" id="foodChips"></div>
-      <label class="big-field"><input id="food" type="number" inputmode="numeric" min="0" step="500" value="8000"> <span data-i18n="bahtPerMonth">บาทต่อเดือน</span></label>
+    <div class="qrow">
+      <div class="qlabel"><span data-i18n="qFood">ค่าอาหารและเครื่องดื่ม</span></div>
+      <div class="qctl"><div class="chips" id="foodChips"></div><label class="mini"><input id="food" type="number" inputmode="numeric" min="0" step="500" value="8000"> <span data-i18n="baht">บาท</span></label></div>
     </div>
-    <div class="q">
-      <h2 data-i18n="qElec">ค่าไฟ ก๊าซหุงต้ม น้ำประปา เดือนละประมาณ</h2>
-      <div class="chips" id="elecChips"></div>
-      <label class="big-field"><input id="elec" type="number" inputmode="numeric" min="0" step="100" value="1000"> <span data-i18n="bahtPerMonth">บาทต่อเดือน</span></label>
+    <div class="qrow">
+      <div class="qlabel"><span data-i18n="qElec">ค่าไฟ ก๊าซหุงต้ม น้ำประปา</span></div>
+      <div class="qctl"><div class="chips" id="elecChips"></div><label class="mini"><input id="elec" type="number" inputmode="numeric" min="0" step="100" value="1000"> <span data-i18n="baht">บาท</span></label></div>
     </div>
-    <div class="q">
-      <h2 data-i18n="qOther">ค่าใช้จ่ายอื่น ๆ เดือนละประมาณ</h2>
-      <p class="hint" data-i18n="otherHint">ค่าเช่า ของใช้ เสื้อผ้า ค่ารถสาธารณะ ค่ารักษา ค่าเทอม</p>
-      <div class="chips" id="otherChips"></div>
-      <label class="big-field"><input id="other" type="number" inputmode="numeric" min="0" step="500" value="8000"> <span data-i18n="bahtPerMonth">บาทต่อเดือน</span></label>
+    <div class="qrow">
+      <div class="qlabel"><span data-i18n="qOther">ค่าใช้จ่ายอื่น ๆ</span><small data-i18n="otherHint">ค่าเช่า ของใช้ เสื้อผ้า ค่ารถสาธารณะ ค่ารักษา ค่าเทอม</small></div>
+      <div class="qctl"><div class="chips" id="otherChips"></div><label class="mini"><input id="other" type="number" inputmode="numeric" min="0" step="500" value="8000"> <span data-i18n="baht">บาท</span></label></div>
     </div>
+    <p class="hint" data-i18n="perMonthHint">ตัวเลขทั้งหมดเป็นรายเดือน ใส่ค่าประมาณก็พอ</p>
   </section>
 
-  <section class="result" aria-live="polite">
-    <p class="result-lead" data-i18n="nowLead">เทียบกับปีที่แล้ว ตอนนี้คุณจ่ายเพิ่มไปแล้วประมาณ</p>
-    <p class="result-big"><span id="nowTotal">–</span> <span class="result-unit" data-i18n="bahtPerMonth">บาทต่อเดือน</span></p>
-    <p class="result-when" id="nowNote"></p>
-    <div id="nowBars"></div>
-    <p class="plain small" data-i18n="nowSource">ตัวเลขส่วนนี้มาจากข้อมูลจริง ราคาหน้าปั๊มจากสำนักงานนโยบายและแผนพลังงาน และดัชนีราคาผู้บริโภคล่าสุดของกระทรวงพาณิชย์ ไม่ใช่การคาดการณ์</p>
+  <section class="results">
+    <article class="result" aria-live="polite">
+      <p class="result-kicker" data-i18n="nowKicker">วันนี้ เทียบกับปีก่อน</p>
+      <p class="result-lead" id="nowLead"></p>
+      <p class="result-big"><span id="nowTotal">–</span> <span class="result-unit" data-i18n="bahtPerMonth">บาทต่อเดือน</span></p>
+      <p class="result-when" id="nowNote"></p>
+      <div id="nowBars"></div>
+      <p class="plain small" data-i18n="nowSource">ส่วนนี้คือข้อมูลจริง ราคาหน้าปั๊มจาก สนพ. และดัชนีราคาผู้บริโภคล่าสุดของกระทรวงพาณิชย์ ไม่ใช่การคาดการณ์</p>
+    </article>
+    <article class="result next" aria-live="polite">
+      <p class="result-kicker" data-i18n="nextKicker">ที่ยังตามมาอีก</p>
+      <p class="result-lead" id="nextLead"></p>
+      <p class="result-big"><span id="nextTotal">–</span> <span class="result-unit" data-i18n="bahtPerMonth">บาทต่อเดือน</span></p>
+      <p class="result-when" id="nextWhen"></p>
+      <div id="nextBars"></div>
+      <p class="plain small" id="nextRange"></p>
+      <p class="plain small" id="nextAccuracy"></p>
+    </article>
   </section>
 
-  <section class="result next" aria-live="polite">
-    <p class="result-lead" id="nextLead"></p>
-    <p class="result-big"><span id="nextTotal">–</span> <span class="result-unit" data-i18n="bahtPerMonth">บาทต่อเดือน</span></p>
-    <p class="result-when" id="nextWhen"></p>
-    <p class="result-range" id="nextRange"></p>
-    <div id="nextBars"></div>
-    <p class="plain small" id="nextAccuracy"></p>
+  <section class="share">
+    <button class="chip" id="copyBtn" type="button" data-i18n="copy">คัดลอกผลลัพธ์</button>
+    <a class="chip chip-line" id="lineBtn" href="#" target="_blank" rel="noopener" data-i18n="shareLine">แชร์ทาง LINE</a>
+    <span class="hint" id="copyDone"></span>
   </section>
 
   <section class="whatif">
@@ -84,7 +98,7 @@
 
   <section class="why">
     <h2 data-i18n="whyTitle">ทำไมถึงเป็นแบบนี้</h2>
-    <ol class="why-list" id="whyList"></ol>
+    <div class="why-grid" id="whyList"></div>
     <p class="muted small" data-i18n="caveat">ส่วนที่เป็นการคาดการณ์ประมาณจากสิ่งที่เคยเกิดขึ้นในอดีต ไม่ใช่คำพยากรณ์ และไม่รวมมาตรการของรัฐในอนาคต เช่น การตรึงราคาดีเซลหรือลดค่าไฟ ซึ่งทำให้ของแพงช้าลงหรือน้อยลงได้</p>
     <p><a class="more" href="advanced.html" data-i18n="more">ดูรายละเอียด กราฟ และวิธีคิดทั้งหมด</a></p>
   </section>

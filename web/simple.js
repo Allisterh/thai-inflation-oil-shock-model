@@ -9,9 +9,14 @@
       pumpFact: (d) => `${d.prod} หน้าปั๊มวันนี้ ${d.now} บาทต่อลิตร เทียบกับ ${d.ago} บาทเมื่อปีก่อน`,
       cpiFact: (m) => `ของแพงขึ้นจากปีก่อน (เงินเฟ้อ) ล่าสุดเดือน${m}`,
       oilFact: (d) => `น้ำมันดิบคิดเป็นเงินบาท เดือนนี้เทียบกับเดือนก่อน ข้อมูลถึง ${d}`,
-      qFuel: "เติมน้ำมันเดือนละกี่ลิตร", litresPerMonth: "ลิตรต่อเดือน", fuelType: "ชนิด",
+      factsTitle: "ตัวเลขวันนี้", asOf: (d) => `ข้อมูล ณ ${d}`, panelTitle: "ครอบครัวคุณ", perMonthHint: "ตัวเลขทั้งหมดเป็นรายเดือน ใส่ค่าประมาณก็พอ",
+      qFuel: "เติมน้ำมันเดือนละ", litres: "ลิตร", baht: "บาท", nowKicker: "วันนี้ เทียบกับปีก่อน", nextKicker: "ที่ยังตามมาอีก",
+      copy: "คัดลอกผลลัพธ์", shareLine: "แชร์ทาง LINE", copied: "คัดลอกแล้ว",
+      shareText: (d) => `น้ำมันแพงขึ้น ครอบครัวฉันจ่ายเพิ่มแล้วประมาณ ${d.now} บาทต่อเดือนเทียบกับปีก่อน และน่าจะตามมาอีกราว ${d.next} บาทต่อเดือน ลองคำนวณของคุณ: `,
+      whyCards: (d) => [[d.pump, `ราคาหน้าปั๊ม${d.prod}แพงขึ้นจากปีก่อน น้ำมันดิบที่โรงกลั่นไทยซื้อ (ดูไบ) คิดเป็นเงินบาท${d.dir}ประมาณ ${d.crude}`], [d.energy, `เมื่อน้ำมันดิบแพงขึ้น 10% ราคาพลังงานในไทยขึ้นราวนี้ภายในไม่กี่เดือน และของทั้งตะกร้าแพงขึ้นราว ${d.head} จากข้อมูลตั้งแต่ปี 2543`], [d.foodH, `เดือนที่ราคาอาหารขึ้นมากที่สุดหลังน้ำมันแพง อาหารและของอื่น ๆ ขึ้นช้ากว่าเพราะต้นทุนค่อย ๆ ส่งผ่าน แต่อยู่นานกว่า นี่คือส่วนที่ยังตามมาอีก`]],
+      litresPerMonth: "ลิตรต่อเดือน", fuelType: "ชนิด",
       fuelNone: "ไม่มีรถ", fuelMoto: "มอเตอร์ไซค์", fuelCar: "รถยนต์", fuelHeavy: "ขับเยอะ",
-      qFood: "ค่าอาหารและเครื่องดื่มเดือนละประมาณ", qElec: "ค่าไฟ ก๊าซหุงต้ม น้ำประปา เดือนละประมาณ", qOther: "ค่าใช้จ่ายอื่น ๆ เดือนละประมาณ",
+      qFood: "ค่าอาหารและเครื่องดื่ม", qElec: "ค่าไฟ ก๊าซหุงต้ม น้ำประปา", qOther: "ค่าใช้จ่ายอื่น ๆ",
       otherHint: "ค่าเช่า ของใช้ เสื้อผ้า ค่ารถสาธารณะ ค่ารักษา ค่าเทอม", bahtPerMonth: "บาทต่อเดือน",
       nowLead: "เทียบกับปีที่แล้ว ตอนนี้คุณจ่ายเพิ่มไปแล้วประมาณ", nowLeadLess: "เทียบกับปีที่แล้ว ตอนนี้คุณจ่ายน้อยลงประมาณ",
       nowNote: (d) => `จากค่าใช้จ่ายรวม ${d.total} บาทต่อเดือน คิดเป็น ${d.pct} ข้อมูลราคาเดือน${d.m}`,
@@ -43,9 +48,14 @@
       pumpFact: (d) => `${d.prod} at the pump today: ${d.now} baht per litre, against ${d.ago} a year ago`,
       cpiFact: (m) => `Prices compared with a year ago (inflation), latest ${m}`,
       oilFact: (d) => `Crude oil in baht, this month versus last month, data to ${d}`,
-      qFuel: "How many litres of fuel per month?", litresPerMonth: "litres per month", fuelType: "Fuel",
+      factsTitle: "Today's numbers", asOf: (d) => `data as of ${d}`, panelTitle: "Your household", perMonthHint: "All figures per month. Rough numbers are fine.",
+      qFuel: "Fuel per month", litres: "litres", baht: "baht", nowKicker: "Today versus a year ago", nextKicker: "Still to come",
+      copy: "Copy result", shareLine: "Share on LINE", copied: "Copied",
+      shareText: (d) => `Oil got dearer: my household already pays about ${d.now} baht more a month than a year ago, with about ${d.next} more likely to come. Try yours: `,
+      whyCards: (d) => [[d.pump, `${d.prod} at the pump is up this much on a year ago. The crude Thai refineries buy (Dubai), in baht, is ${d.dir} about ${d.crude}.`], [d.energy, `When crude rises 10%, Thai energy prices rise about this much within a few months, and the whole basket about ${d.head}, based on data since 2000.`], [d.foodH, `the month when food prices peak after an oil rise. Food and other goods move later because costs pass through slowly, but the effect lasts longer. That is the part still to come.`]],
+      litresPerMonth: "litres per month", fuelType: "Fuel",
       fuelNone: "No vehicle", fuelMoto: "Motorbike", fuelCar: "Car", fuelHeavy: "Heavy driver",
-      qFood: "Food and drink per month, roughly", qElec: "Electricity, cooking gas and water per month, roughly", qOther: "Everything else per month, roughly",
+      qFood: "Food and drink", qElec: "Electricity, cooking gas, water", qOther: "Everything else",
       otherHint: "Rent, household goods, clothes, public transport, health, school fees", bahtPerMonth: "baht per month",
       nowLead: "Compared with a year ago, you are already paying about", nowLeadLess: "Compared with a year ago, you are paying less by about",
       nowNote: (d) => `Out of ${d.total} baht a month, that is ${d.pct}. Price data for ${d.m}.`,
@@ -133,6 +143,7 @@
     if (!D) return;
     const c = D.current, nc = c.nowcast, cpi = D.cpi_latest, r = D.retail; const pn = pumpNow(), pa = pumpAgo(); const pname = T[lang].prod[state.product];
     // facts
+    $("factsDate").textContent = t("asOf", dateLabel(r.date));
     const dl = pn - pa; const f = $("fPump"); f.textContent = signed(dl, 2); f.classList.toggle("neg", dl < 0); $("fPumpText").textContent = t("pumpFact", { prod: pname, now: num(pn, 2), ago: num(pa, 2) });
     $("fCpi").textContent = signed(cpi.headline_yoy, 1, "%"); $("fCpiText").textContent = t("cpiFact", mLabel(cpi.month));
     const s = c.shock_mtd_pct; const fo = $("fOil"); fo.textContent = signed(s, 1, "%"); fo.classList.toggle("neg", s < 0); $("fOilText").textContent = t("oilFact", dateLabel(nc.brent_latest_date));
@@ -151,7 +162,7 @@
       other: sp.other * cpi.core_yoy / 100,
     };
     const nowTotal = now.fuel + now.food + now.elec + now.other;
-    document.querySelector(".result .result-lead").textContent = nowTotal >= 0 ? t("nowLead") : t("nowLeadLess");
+    $("nowLead").textContent = nowTotal >= 0 ? t("nowLead") : t("nowLeadLess");
     const big = $("nowTotal"); big.textContent = num(round10(Math.abs(nowTotal))); big.className = nowTotal >= 0 ? "up" : "down";
     $("nowNote").textContent = t("nowNote", { total: num(total), pct: num(100 * nowTotal / Math.max(1, total), 1) + "%", m: mLabel(cpi.month) });
     bars($("nowBars"), [
@@ -181,7 +192,13 @@
     // ---- why
     const irfs = D.irfs[D.model.primary_shock]; const pk = (oc) => irfs[oc].reduce((a, b) => (b.beta > a.beta ? b : a), irfs[oc][0]);
     const yoy = c.dubai_thb_yoy_pct;
-    $("whyList").innerHTML = [t("why1", { dir: yoy >= 0 ? (lang === "th" ? "แพงขึ้น" : "up") : (lang === "th" ? "ถูกลง" : "down"), pct: num(Math.abs(yoy), 0) + "%", prod: pname, pump: signed(100 * (pn / pa - 1), 0, "%") }), t("why2", { energy: num(pk("energy").beta * 10, 1), head: num(pk("headline").beta * 10, 1) }), t("why3")].map((x) => `<li>${x}</li>`).join("");
+    const cards = t("whyCards", { pump: signed(100 * (pn / pa - 1), 0, "%"), prod: pname, dir: yoy >= 0 ? (lang === "th" ? "แพงขึ้น" : "up") : (lang === "th" ? "ถูกลง" : "down"), crude: num(Math.abs(yoy), 0) + "%", energy: signed(pk("energy").beta * 10, 1, "%"), head: signed(pk("headline").beta * 10, 1, "%"), foodH: (lang === "th" ? "เดือนที่ " : "Month ") + pk("food").h });
+    $("whyList").innerHTML = cards.map(([b, p]) => `<div class="why-card"><b>${b}</b><p>${p}</p></div>`).join("");
+    // share
+    const shareText = t("shareText", { now: num(round10(nowTotal)), next: num(round10(ah.peak)) });
+    const url = location.href.split("#")[0];
+    $("lineBtn").href = "https://social-plugins.line.me/lineit/share?url=" + encodeURIComponent(url) + "&text=" + encodeURIComponent(shareText);
+    $("copyBtn").onclick = () => { navigator.clipboard && navigator.clipboard.writeText(shareText + url).then(() => { $("copyDone").textContent = t("copied"); setTimeout(() => { $("copyDone").textContent = ""; }, 2000); }); };
     $("footSources").textContent = t("foot", (D.generated_at || "").slice(0, 10));
   }
 

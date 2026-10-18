@@ -1,28 +1,43 @@
 name: Daily data sync and model refresh
 
+# Refreshes data/cache, results/ and web/data/latest.json and commits them back to the branch
+# the workflow runs on. Any host that deploys from this repository (Netlify, Cloudflare Pages,
+# GitHub Pages) then redeploys automatically. Publish directory for those hosts: `web`.
+
 on:
   schedule:
-    # 23:30 UTC = 06:30 Bangkok, after the previous day's ICE Brent settlement.
+    # 23:30 UTC = 06:30 Bangkok, after the previous day's ICE/EIA settlement and the EPPO price update.
     - cron: "30 23 * * 1-5"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["thai_oil_cpi/**", "requirements.txt", ".github/workflows/daily-sync.yml"]
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: daily-sync
+  cancel-in-progress: false
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
       - name: Sync data and re-estimate
-        env:
-          THAI_CPI_URL: ${{ secrets.THAI_CPI_URL }}
         run: python -m thai_oil_cpi run --force
+      - name: Run tests
+        run: python -m pytest -q
       - name: Commit refreshed data and results
         run: |
           git config user.name "github-actions[bot]"
@@ -32,7 +47,8 @@ jobs:
             echo "no changes"
           else
             git commit -m "chore: daily data sync $(date -u +%Y-%m-%d)"
-            git push
+            git pull --rebase origin "${{ github.ref_name }}"
+            git push origin "HEAD:${{ github.ref_name }}"
           fi
       - name: Upload web app as Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -41,11 +57,9 @@ jobs:
 
   deploy-pages:
     needs: refresh
-    if: github.ref == 'refs/heads/main'
+    if: github.ref_name == 'main'
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
+    continue-on-error: true   # only matters when GitHub Pages is enabled for the repository
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
