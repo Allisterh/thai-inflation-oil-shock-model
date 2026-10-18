@@ -9,7 +9,7 @@
       pumpFact: (d) => `${d.prod} หน้าปั๊มวันนี้ ${d.now} บาทต่อลิตร เทียบกับ ${d.ago} บาทเมื่อปีก่อน`,
       cpiFact: (m) => `ของแพงขึ้นจากปีก่อน (เงินเฟ้อ) ล่าสุดเดือน${m}`,
       oilFact: (d) => `น้ำมันดิบคิดเป็นเงินบาท เดือนนี้เทียบกับเดือนก่อน ข้อมูลถึง ${d}`,
-      factsTitle: "ตัวเลขวันนี้", asOf: (d) => `ข้อมูล ณ ${d}`, panelTitle: "ครอบครัวคุณ", perMonthHint: "ตัวเลขทั้งหมดเป็นรายเดือน ใส่ค่าประมาณก็พอ",
+      factsTitle: "ตัวเลขวันนี้", asOf: (d) => `อัปเดตล่าสุด ${d}`, panelTitle: "ครอบครัวคุณ", perMonthHint: "ตัวเลขทั้งหมดเป็นรายเดือน ใส่ค่าประมาณก็พอ",
       qFuel: "เติมน้ำมันเดือนละ", litres: "ลิตร", baht: "บาท", nowKicker: "วันนี้ เทียบกับปีก่อน", nextKicker: "ที่ยังตามมาอีก",
       copy: "คัดลอกผลลัพธ์", shareLine: "แชร์ทาง LINE", copied: "คัดลอกแล้ว",
       shareText: (d) => `น้ำมันแพงขึ้น ครอบครัวฉันจ่ายเพิ่มแล้วประมาณ ${d.now} บาทต่อเดือนเทียบกับปีก่อน และน่าจะตามมาอีกราว ${d.next} บาทต่อเดือน ลองคำนวณของคุณ: `,
@@ -48,7 +48,7 @@
       pumpFact: (d) => `${d.prod} at the pump today: ${d.now} baht per litre, against ${d.ago} a year ago`,
       cpiFact: (m) => `Prices compared with a year ago (inflation), latest ${m}`,
       oilFact: (d) => `Crude oil in baht, this month versus last month, data to ${d}`,
-      factsTitle: "Today's numbers", asOf: (d) => `data as of ${d}`, panelTitle: "Your household", perMonthHint: "All figures per month. Rough numbers are fine.",
+      factsTitle: "Today's numbers", asOf: (d) => `Updated ${d}`, panelTitle: "Your household", perMonthHint: "All figures per month. Rough numbers are fine.",
       qFuel: "Fuel per month", litres: "litres", baht: "baht", nowKicker: "Today versus a year ago", nextKicker: "Still to come",
       copy: "Copy result", shareLine: "Share on LINE", copied: "Copied",
       shareText: (d) => `Oil got dearer: my household already pays about ${d.now} baht more a month than a year ago, with about ${d.next} more likely to come. Try yours: `,
@@ -143,7 +143,7 @@
     if (!D) return;
     const c = D.current, nc = c.nowcast, cpi = D.cpi_latest, r = D.retail; const pn = pumpNow(), pa = pumpAgo(); const pname = T[lang].prod[state.product];
     // facts
-    $("factsDate").textContent = t("asOf", dateLabel(r.date));
+    $("dateline").textContent = t("asOf", dateLabel((D.generated_at || "").slice(0, 10)));
     const dl = pn - pa; const f = $("fPump"); f.textContent = signed(dl, 2); f.classList.toggle("neg", dl < 0); $("fPumpText").textContent = t("pumpFact", { prod: pname, now: num(pn, 2), ago: num(pa, 2) });
     $("fCpi").textContent = signed(cpi.headline_yoy, 1, "%"); $("fCpiText").textContent = t("cpiFact", mLabel(cpi.month));
     const s = c.shock_mtd_pct; const fo = $("fOil"); fo.textContent = signed(s, 1, "%"); fo.classList.toggle("neg", s < 0); $("fOilText").textContent = t("oilFact", dateLabel(nc.brent_latest_date));

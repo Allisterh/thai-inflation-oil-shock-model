@@ -1,5 +1,5 @@
 {
-  "synced_at": "2026-10-18T12:55:56+00:00",
+  "synced_at": "2026-10-18T13:03:35+00:00",
   "tpso_cpi": {
     "name": "tpso_cpi",
     "source": "TPSO Index API (cpig/filter)",
@@ -59,7 +59,7 @@
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",
     "source": "EPPO oil-prices JSON",
-    "fetched_at": "2026-10-18T12:55:59+00:00",
+    "fetched_at": "2026-10-18T13:03:38+00:00",
     "first_obs": "2026-10-09",
     "last_obs": "2026-10-09",
     "n_obs": 1,
@@ -70,7 +70,7 @@
   "eppo_price_structure": {
     "name": "eppo_price_structure",
     "source": "EPPO oil-structure-prices JSON",
-    "fetched_at": "2026-10-18T12:55:59+00:00",
+    "fetched_at": "2026-10-18T13:03:38+00:00",
     "first_obs": null,
     "last_obs": "2026-10-15",
     "n_obs": 1,
