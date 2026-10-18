@@ -1,8 +1,8 @@
 name: Daily data sync and model refresh
 
 # Refreshes data/cache, results/ and web/data/latest.json and commits them back to the branch
-# the workflow runs on. Any host that deploys from this repository (Netlify, Cloudflare Pages,
-# GitHub Pages) then redeploys automatically. Publish directory for those hosts: `web`.
+# the workflow runs on. Netlify (or any host linked to this repository) then redeploys
+# automatically. Publish directory: `web`.
 
 on:
   schedule:
@@ -15,8 +15,6 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 concurrency:
   group: daily-sync
@@ -50,19 +48,3 @@ jobs:
             git pull --rebase origin "${{ github.ref_name }}"
             git push origin "HEAD:${{ github.ref_name }}"
           fi
-      - name: Upload web app as Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: web
-
-  deploy-pages:
-    needs: refresh
-    if: github.ref_name == 'main'
-    runs-on: ubuntu-latest
-    continue-on-error: true   # only matters when GitHub Pages is enabled for the repository
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
