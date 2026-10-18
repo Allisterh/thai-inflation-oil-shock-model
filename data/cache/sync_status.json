@@ -47,16 +47,14 @@
   },
   "usdthb_daily": {
     "name": "usdthb_daily",
-    "source": null,
-    "fetched_at": null,
-    "first_obs": "2007-01-01",
+    "source": "ECB reference rate via Frankfurter",
+    "fetched_at": "2026-10-18T12:49:09+00:00",
+    "first_obs": "1999-12-30",
     "last_obs": "2026-10-16",
-    "n_obs": 5132,
-    "from_cache": true,
-    "errors": [
-      "Yahoo Finance THB=X: GET https://query1.finance.yahoo.com/v8/finance/chart/THB%3DX?period1=946684800&period2=9999999999&interval=1d failed: HTTP Error 429: Too Many Requests"
-    ],
-    "note": "source failed; using cached copy"
+    "n_obs": 6858,
+    "from_cache": false,
+    "errors": [],
+    "note": null
   },
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",

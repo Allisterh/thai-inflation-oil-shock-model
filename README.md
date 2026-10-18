@@ -9,7 +9,7 @@ Live numbers come from Thai official sources wherever they exist:
 | Consumer price index, headline and every category, with basket weights | Trade Policy and Strategy Office (TPSO), Ministry of Commerce, Index API | monthly | Jan 1976 → latest release |
 | Dubai, Brent and WTI crude | World Bank Commodity Price Data (Pink Sheet), IMF PCPS as fallback | monthly | 1960 → previous month |
 | Brent spot (dated Brent) | US EIA, ICE futures via Yahoo Finance as fallback | daily | 1987 → two days ago |
-| USD/THB | IMF IFS (history) + Yahoo Finance (daily, recent months) | monthly and daily | 1957 → today |
+| USD/THB | IMF IFS (monthly history); ECB reference rates via the open Frankfurter API (daily), Yahoo Finance only as a fallback | monthly and daily | 1957 → yesterday |
 | Pump prices by brand and the official price build-up (ex-refinery, excise, Oil Fund, margin, VAT) | Energy Policy and Planning Office (EPPO), Ministry of Energy, JSON | daily | snapshots accumulate from first run |
 | Bangkok retail prices by product | EPPO petroleum price statistics, Table 9 | monthly | 2003 → previous month |
 

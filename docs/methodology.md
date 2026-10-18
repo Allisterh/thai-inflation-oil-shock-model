@@ -117,7 +117,7 @@ The quarterly specification above is the original exploration and is preserved i
 | CPI, all categories, with weights | TPSO Index API (`index.tpso.go.th/api/cpig/filter`, documented at tpso.go.th/indexAPI_Manual) | base 2566 = 2023, chained back to 1976; sub-indices for energy, vehicles and fuel, electricity/fuel/water, public transport, food, raw food, core |
 | Dubai, Brent, WTI monthly | World Bank Pink Sheet (`CMO-Historical-Data-Monthly.xlsx`, URL discovered from the commodity-markets page) | IMF PCPS via DBnomics as fallback |
 | Brent spot daily | EIA `RBRTEd.xls` | ICE futures (Yahoo `BZ=F`) as fallback; spot is used because the Pink Sheet's Brent and Dubai are spot assessments |
-| USD/THB monthly | IMF IFS `ENDA_XDC_USD_RATE` via DBnomics, extended with Yahoo daily averages | overlap agrees within 0.25% |
+| USD/THB | IMF IFS `ENDA_XDC_USD_RATE` via DBnomics (monthly history), ECB reference rates via Frankfurter (daily) | overlap agrees within 0.25% |
 | Pump prices and price structure | EPPO `wp-json/oil-api/v1/oil-prices`, `oil-structure-prices` | daily snapshots accumulate in the cache |
 | Retail history | EPPO Table 9 (`P09.xls`) | monthly weighted averages since 2003 |
 

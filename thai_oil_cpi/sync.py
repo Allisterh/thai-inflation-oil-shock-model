@@ -6,7 +6,7 @@ Sources (first success wins; the cache is used when every source fails):
 * Dubai / Brent / WTI, monthly                : World Bank Pink Sheet → IMF PCPS (DBnomics)
 * USD/THB, monthly                            : IMF IFS (DBnomics) extended with Yahoo daily averages
 * Brent spot, daily                           : EIA dated Brent → Yahoo ICE futures
-* USD/THB, daily                              : Yahoo Finance THB=X
+* USD/THB, daily                              : ECB reference rate (Frankfurter) → Yahoo THB=X
 * Thai pump prices                            : EPPO JSON (daily snapshot) + EPPO Table 9 (monthly since 2003)
 * Official pump price structure               : EPPO JSON (ex-refinery, taxes, Oil Fund, margin, VAT)
 """
@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
-from .sources import SourceError, dbnomics, eia, eppo, tpso, worldbank, yahoo
+from .sources import SourceError, dbnomics, ecb, eia, eppo, tpso, worldbank, yahoo
 
 
 # --------------------------------------------------------------------------
@@ -276,7 +276,8 @@ def sync_all(force: bool = False, max_age_hours: float = C.DEFAULT_MAX_AGE_HOURS
     status["brent_daily"] = sync_daily("brent_daily", [("EIA Brent spot (RBRTEd)", eia.fetch_brent_daily),
                                                        ("Yahoo Finance BZ=F futures", lambda: yahoo.fetch_daily("BZ=F", "2000-01-01"))],
                                        C.BRENT_DAILY_CSV, prev, force, max_age_hours)
-    status["usdthb_daily"] = sync_daily("usdthb_daily", [("Yahoo Finance THB=X", lambda: yahoo.fetch_daily("THB=X", "2000-01-01"))],
+    status["usdthb_daily"] = sync_daily("usdthb_daily", [("ECB reference rate via Frankfurter", ecb.fetch_usdthb_daily),
+                                                         ("Yahoo Finance THB=X", lambda: yahoo.fetch_daily("THB=X", "2000-01-01"))],
                                         C.USDTHB_DAILY_CSV, prev, force, max_age_hours)
     status.update(sync_eppo(prev, force, max_age_hours))
     _save_status(status)
