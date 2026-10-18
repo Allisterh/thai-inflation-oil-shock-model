@@ -22,7 +22,7 @@
   };
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ",
+      brand: "น้ำมันกับค่าครองชีพ", backSimple: "กลับหน้าหลัก",
       h1: "น้ำมันแพงขึ้นวันนี้ ครอบครัวคุณจะจ่ายเพิ่มเท่าไร และเมื่อไร",
       lede: "หน้านี้ติดตามราคาน้ำมันดิบดูไบ ซึ่งเป็นราคาอ้างอิงที่โรงกลั่นไทยซื้อจริง ควบคู่กับเบรนท์รายวันและค่าเงินบาท แล้วใช้ดัชนีราคาผู้บริโภครายเดือนของกระทรวงพาณิชย์ตั้งแต่ปี 2543 ประมาณว่าราคาน้ำมันที่เปลี่ยนไปจะดันเงินเฟ้อ ราคาพลังงาน ค่าเดินทาง และราคาอาหารขึ้นเท่าไร ในอีกกี่เดือน และหมายถึงเงินกี่บาทต่อเดือนสำหรับครอบครัวของคุณ",
       boardTitle: "กระดานราคาวันนี้", tileDubai: (m) => `น้ำมันดิบดูไบ เฉลี่ย${m}`, unitUsdBbl: "ดอลลาร์ต่อบาร์เรล", perLitre: (v) => `≈ ${v} บาทต่อลิตร`,
@@ -76,7 +76,7 @@
       loadError: "โหลดข้อมูลไม่สำเร็จ ลองรัน python -m thai_oil_cpi run แล้วเปิดหน้านี้ใหม่",
     },
     en: {
-      brand: "Oil and the cost of living",
+      brand: "Oil and the cost of living", backSimple: "Back to the simple page",
       h1: "When oil gets dearer today, how much more will your household pay, and when",
       lede: "This page follows Dubai crude, the benchmark Thai refineries actually buy against, alongside daily Brent and the baht. It uses the Ministry of Commerce's monthly consumer price indices since 2000 to estimate how an oil price move feeds into inflation, energy prices, travel costs and food prices, how many months later, and what that means in baht per month for your household.",
       boardTitle: "Today's board", tileDubai: (m) => `Dubai crude, ${m} average`, unitUsdBbl: "US dollars per barrel", perLitre: (v) => `≈ ${v} baht per litre`,
