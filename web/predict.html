@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คาดการณ์เงินเฟ้อรายเดือน</title>
+<meta name="description" content="คาดการณ์อัตราเงินเฟ้อไทยของเดือนนี้ก่อนกระทรวงพาณิชย์ประกาศ พร้อมตารางผลคาดการณ์ที่ผ่านมาทุกครั้ง ถูกและผิด">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231d2624%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-weight=%27700%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5c543%27%3E฿%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="simple.css">
+<style>
+  .prose { max-width: 76ch; }
+  .prose h2 { font-size: 1.35rem; margin: 2em 0 .6em; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .prose h2 small { display: block; font: 500 .85rem var(--font-body); color: var(--ink-2); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+  .prose p, .prose li { font-size: 1.02rem; line-height: 1.65; }
+  .prose ul { padding-left: 1.2em; }
+  .card { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 18px 0 16px; margin: 10px 0 8px; }
+  .card .status { font: 500 .85rem var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 6px; }
+  .card .status.locked { color: var(--accent); }
+  .card .big { font: 600 3rem var(--font-display); line-height: 1.05; margin: 0; }
+  .card .big small { font-size: 1.3rem; font-weight: 500; color: var(--ink-2); margin-left: 8px; }
+  .card .line { margin: 8px 0 0; font-size: 1rem; line-height: 1.55; }
+  .card .meta { font-size: .9rem; color: var(--ink-2); line-height: 1.5; margin: 8px 0 0; }
+  .alt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin: 14px 0 0; border-top: 1px solid var(--grid); }
+  .alt > div { padding: 10px 14px 4px 0; border-right: 1px solid var(--grid); }
+  .alt > div + div { padding-left: 14px; }
+  .alt > div:last-child { border-right: 0; }
+  .alt .v { display: block; font: 600 1.35rem var(--font-display); }
+  .alt .l { font-size: .85rem; color: var(--ink-2); line-height: 1.4; }
+  .sum { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--grid); margin: 12px 0 6px; }
+  .sum > div { padding: 12px 14px 12px 0; border-right: 1px solid var(--grid); }
+  .sum > div + div { padding-left: 14px; }
+  .sum > div:last-child { border-right: 0; }
+  .sum .v { display: block; font: 600 1.6rem var(--font-display); line-height: 1.1; margin-bottom: 4px; }
+  .sum .l { font-size: .88rem; color: var(--ink-2); line-height: 1.4; }
+  table.t { width: 100%; border-collapse: collapse; font-size: .95rem; margin: 10px 0 6px; font-variant-numeric: tabular-nums; }
+  table.t th, table.t td { text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--axis); vertical-align: top; }
+  table.t th:first-child, table.t td:first-child { text-align: left; }
+  table.t thead th { font-weight: 600; border-bottom: 1px solid var(--ink); font-size: .88rem; line-height: 1.3; }
+  table.t td.yes { color: var(--down); font-weight: 600; }
+  table.t td.no { color: var(--up); font-weight: 600; }
+  table.t td.pending { color: var(--muted); }
+  .empty { color: var(--ink-2); font-size: .95rem; padding: 10px 0; border-bottom: 1px solid var(--axis); }
+  .srcline { font-size: .86rem; color: var(--ink-2); line-height: 1.5; margin: 6px 0 0; }
+  figure { margin: 18px 0 20px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: .9rem; color: var(--ink-2); line-height: 1.5; margin-top: 8px; }
+  .legend { display: flex; gap: 18px; font-size: .9rem; color: var(--ink-2); margin: 6px 0; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; }
+  .links { display: flex; gap: 22px; flex-wrap: wrap; margin: 28px 0 10px; font-size: .95rem; }
+  @media (max-width: 640px) {
+    .card .big { font-size: 2.4rem; }
+    .alt, .sum { grid-template-columns: 1fr; }
+    .alt > div, .sum > div { border-right: 0; border-bottom: 1px solid var(--grid); padding: 10px 0; }
+    .alt > div + div, .sum > div + div { padding-left: 0; }
+    .alt > div:last-child, .sum > div:last-child { border-bottom: 0; }
+    table.t { font-size: .85rem; } table.t th, table.t td { padding: 7px 4px; }
+  }
+</style>
+</head>
+<body class="simple">
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="index.html"><span data-i18n="brand">น้ำมันกับค่าครองชีพ</span></a>
+    <nav class="pages" aria-label="pages"><a href="index.html" data-i18n="navHome">คำนวณของคุณ</a><a href="predict.html" data-i18n="navPredict" aria-current="page">คาดการณ์รายเดือน</a><a href="methodology.html" data-i18n="navMethod">ทำไมถึงเชื่อถือได้</a><a href="advanced.html" data-i18n="navAdvanced">กราฟและรายละเอียด</a></nav>
+    <button class="lang" id="langToggle" type="button" aria-label="Switch language">EN</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <p class="dateline" id="dateline"></p>
+    <h1 data-i18n="title">เงินเฟ้อเดือนนี้จะเป็นเท่าไร เราบอกก่อนทางการประกาศ</h1>
+    <p class="lede" data-i18n="lede"></p>
+  </section>
+  <section class="card" id="card" aria-live="polite"></section>
+  <article class="prose" id="prose"></article>
+  <nav class="links">
+    <a class="more" href="index.html" data-i18n="backSimple">กลับไปคำนวณของคุณ</a>
+    <a class="more" href="methodology.html" data-i18n="toMethod">ทำไมถึงเชื่อถือได้</a>
+    <a class="more" id="csvLink" href="https://github.com/thaileetrakul27/thai-inflation-oil-shock-model/blob/main/results/predictions.csv" data-i18n="toCsv">ไฟล์บันทึกคำคาดการณ์ทั้งหมดบน GitHub</a>
+  </nav>
+</main>
+<footer class="wrap foot"><span id="footSources"></span><a href="https://github.com/thaileetrakul27/thai-inflation-oil-shock-model">GitHub</a></footer>
+<script src="predict.js"></script>
+</body>
+</html>

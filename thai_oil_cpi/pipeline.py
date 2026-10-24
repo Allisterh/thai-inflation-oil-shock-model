@@ -234,8 +234,10 @@ def build_payload(ds: Dataset, irfs: dict) -> dict:
                              "corr": float(g["projected"].corr(g["actual"]))})
             backtests["combined"][oc] = {"shock": "combined", "outcome": oc, "origins": int(mm["origin"].nunique()), "by_h": by_h,
                                          "rows": mm[["origin", "h", "projected", "actual"]].round(4).to_dict(orient="records")}
-    for key in backtests:  # keep only the 6-month rows for the chart to limit size
+    for key in backtests:  # keep only the 6-month rows for the chart to limit size (plus the 1-month rows for the prediction page)
         for oc in backtests[key]:
+            if key == a and oc == "headline":
+                backtests[key][oc]["rows_h1"] = [r for r in backtests[key][oc]["rows"] if r["h"] == 1]
             backtests[key][oc]["rows"] = [r for r in backtests[key][oc]["rows"] if r["h"] == 6]
 
     asym = {}
@@ -323,4 +325,7 @@ def run(sync: bool = True, force: bool = False, offline: bool = False, sample_st
         pd.DataFrame(rows).to_csv(C.RESULTS_DIR / "backtest_rolling.csv", index=False)
     C.WEB_DATA_DIR.mkdir(parents=True, exist_ok=True)
     C.LATEST_JSON.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    # Monthly prediction and scorecard (results/predictions.csv, web/data/predictions.json).
+    from .predict import run_predictions
+    run_predictions(ds, backtests=payload.get("backtests"))
     return payload

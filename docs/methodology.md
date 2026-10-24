@@ -174,7 +174,7 @@ Both are kept behind configuration switches and evaluated with the same rolling 
 
 ### Rolling pseudo-out-of-sample evaluation
 
-For each origin T in the last 36 months the model is re-estimated on observations whose outcome month is at or before T. The oil-driven component of the outcome at month s is Σ_h β_h shock_{s−h}; the projected change from T to T+j is the difference of that component between T+j and T, using shocks realised through T+j (the test is of pass-through, not of oil-price forecasting). RMSE, MAE, bias and correlation against the actual change in the year-on-year rate are reported by horizon, alongside the RMSE of a "no change" projection.
+For each origin T in the last 36 months the model is re-estimated on observations whose outcome month is at or before T (past data only), and the projection then uses the oil and pump-price shocks that actually occurred after T. The oil-driven component of the outcome at month s is Σ_h β_h shock_{s−h}; the projected change from T to T+j is the difference of that component between T+j and T, using shocks realised through T+j (the test is of pass-through, not of oil-price forecasting). RMSE, MAE, bias and correlation against the actual change in the year-on-year rate are reported by horizon, alongside the RMSE of a "no change" projection.
 
 ### Asymmetry
 

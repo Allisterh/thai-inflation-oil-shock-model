@@ -4,7 +4,7 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",  title: "ทำไมตัวเลขนี้เชื่อถือได้",
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",  title: "ทำไมตัวเลขนี้เชื่อถือได้",
       lede: "หน้าแรกขอให้คุณเชื่อตัวเลขที่เป็นการประมาณ เราจึงควรพิสูจน์ให้เห็น ไม่ใช่แค่บอก หน้านี้แสดงว่าเราทดสอบอย่างไร ผิดบ่อยแค่ไหน คิดอย่างไร และข้อมูลมาจากไหน ทุกตัวเลขในหน้านี้คำนวณใหม่ทุกวันจากข้อมูลล่าสุด ไม่ได้พิมพ์ไว้ตายตัว",
       backSimple: "กลับไปคำนวณของคุณ", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
       asOf: (d) => `อัปเดตล่าสุด ${d}`, foot: (d) => `ข้อมูล: กระทรวงพาณิชย์ สนพ. ธนาคารโลก EIA ธนาคารกลางยุโรป อัปเดต ${d}`,
@@ -26,7 +26,7 @@
 <h2><small>หลักฐานชิ้นที่ 2</small>ทำไมถึงแม่น ทั้งที่รัฐตรึงราคา</h2>
 <p>คำถามที่ดีที่สุดที่เราได้รับคือ "รัฐตรึงดีเซลและลดค่าไฟ แล้วแบบจำลองจะรู้ได้อย่างไร" คำตอบคือเราไม่ได้ให้แบบจำลองดูราคาน้ำมันดิบโลกเป็นหลัก แต่ให้ดู<strong>ราคาหน้าปั๊มจริงในกรุงเทพตั้งแต่ปี 2546</strong> ซึ่งมีผลของทุกมาตรการอยู่ในนั้นแล้ว ทั้งการตรึงดีเซล เงินอุดหนุนจากกองทุนน้ำมัน และการลดภาษีสรรพสามิต แบบจำลองจึงเรียนรู้ว่า "เมื่อราคาที่คนไทยจ่ายจริงขึ้น ของอื่นตามมาเท่าไร" ไม่ใช่ "เมื่อน้ำมันโลกขึ้น"</p>
 <ul>
-<li><strong>เราวัดได้ว่ารัฐรับไว้เท่าไร</strong> ตั้งแต่ปี 2546 เมื่อน้ำมันดิบเปลี่ยน ราคาหน้าปั๊มขยับตามเพียงราว ${f.pt} ภายใน 3 เดือน (ช่วงที่กองทุนน้ำมันอุดหนุน ${f.ptSub} ช่วงที่เก็บเงินเข้ากองทุน ${f.ptCol}) คำถาม "แล้วถ้าน้ำมันดิบขึ้นอีก" บนหน้าแรกใช้สัดส่วนนี้ ไม่ได้สมมติว่าขึ้นเต็ม</li>
+<li><strong>ราคาหน้าปั๊มขยับตามน้ำมันดิบแค่ราวครึ่งหนึ่ง และเหตุผลหลักไม่ใช่การอุดหนุน</strong> น้ำมันดิบเป็นแค่ราวครึ่งหนึ่งของราคาหน้าปั๊ม ที่เหลือคือภาษีสรรพสามิต เงินกองทุน และค่าการตลาด ซึ่งคิดเป็นบาทต่อลิตรคงที่ น้ำมันดิบขึ้น 10% จึงดันราคาหน้าปั๊มขึ้นราว 5% แม้ไม่มีการอุดหนุน ข้อมูลตั้งแต่ปี 2546 ให้ตัวเลข ${f.pt} ภายใน 3 เดือน (ช่วงที่กองทุนน้ำมันอุดหนุน ${f.ptSub} ช่วงที่เก็บเงินเข้ากองทุน ${f.ptCol}) กองทุนน้ำมันทำหน้าที่ปรับอัตราเงินกองทุนเพื่อชะลอการเปลี่ยนแปลง แล้วเก็บเงินคืนทีหลัง คำถาม "แล้วถ้าน้ำมันดิบขึ้นอีก" บนหน้าแรกใช้สัดส่วนนี้ ไม่ได้สมมติว่าขึ้นเต็ม</li>
 <li><strong>ค่าไฟใช้ตัวเลขที่ประกาศแล้ว</strong> กกพ. กำหนดค่าไฟล่วงหน้าทีละ 4 เดือน งวดปัจจุบันคือหน่วยละ ${f.ftTariff} บาท ถึง${f.ftUntil} เดือนที่ประกาศแล้วเราใช้ตัวเลขจริง ไม่ใช่แบบจำลอง</li>
 <li><strong>ของที่รัฐไม่เคยตรึง คืออาหารและของทั่วไป</strong> และนั่นคือค่าใช้จ่ายส่วนใหญ่ของครัวเรือน แบบจำลองพบว่าราคาอาหารขึ้นช้า มักแพงที่สุดราวเดือนที่ ${f.foodPeakH} หลังน้ำมันขึ้น และอยู่นาน ส่วนนี้คือที่มาของ "ที่ยังตามมาอีก"</li>
 </ul>
@@ -70,7 +70,7 @@
       latest: "ล่าสุด", cached: "ใช้ข้อมูลสำรอง",
     },
     en: {
-      brand: "Oil and the cost of living", navHome: "Your calculation", navMethod: "Why trust it", navAdvanced: "Charts and details",  title: "Why you can trust these numbers",
+      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navMethod: "Why trust it", navAdvanced: "Charts and details",  title: "Why you can trust these numbers",
       lede: "The front page asks you to believe an estimate. That deserves proof, not just reassurance. This page shows how the model is tested, how often it is wrong, how it thinks, and where the data comes from. Every figure here is recomputed from the latest data on every run; none of it is typed in.",
       backSimple: "Back to your calculation", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
       asOf: (d) => `Updated ${d}`, foot: (d) => `Sources: Ministry of Commerce, EPPO, World Bank, US EIA, European Central Bank. Updated ${d}`,
@@ -92,7 +92,7 @@
 <h2><small>Evidence 2</small>Why it stays accurate when the government holds prices down</h2>
 <p>The best question we get is: "The government caps diesel and cuts electricity bills, so how can the model know?" The answer is that the model does not mainly watch world crude oil. It watches <strong>actual Bangkok pump prices since 2003</strong>, which already contain the effect of every measure: diesel caps, Oil Fund subsidies, excise cuts. So it learns "when the price Thais actually pay goes up, how much do other prices follow", not "when world oil goes up".</p>
 <ul>
-<li><strong>We can measure how much the government absorbs.</strong> Since 2003, when crude has moved, pump prices have followed only about ${f.pt} of it within three months (${f.ptSub} while the Oil Fund was subsidising, ${f.ptCol} while it was collecting). The "what if crude rises again" question on the front page uses that share rather than assuming the full move.</li>
+<li><strong>Pump prices follow about half of a crude move, and the main reason is not subsidy.</strong> Crude oil is only about half the pump price. Excise, fund levies and the marketing margin are fixed baht amounts per litre, so a 10% rise in crude moves pump prices by roughly 5% even with no subsidy. The data since 2003 give ${f.pt} within three months (${f.ptSub} while the Oil Fund was subsidising, ${f.ptCol} while it was collecting). The Oil Fund adjusts its levy to slow price changes and later charges the money back. The "what if crude rises again" question on the front page uses that share rather than assuming the full move.</li>
 <li><strong>Electricity uses announced figures.</strong> The regulator sets the tariff four months at a time; the current period is ${f.ftTariff} baht a unit through ${f.ftUntil}. For announced months we use the real figure, not the model.</li>
 <li><strong>What the government has never capped is food and everyday goods</strong>, which is most of a household's spending. The model finds food rises slowly, peaking around month ${f.foodPeakH} after a fuel rise, and stays up. That is where "what is still coming" comes from.</li>
 </ul>

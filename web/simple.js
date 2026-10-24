@@ -3,7 +3,7 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด", 
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด", 
       h1: "น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท",
       lede: "ตอบ 5 ข้อสั้น ๆ แล้วเราจะบอกสองอย่าง หนึ่ง ตอนนี้คุณจ่ายเพิ่มไปแล้วเดือนละกี่บาทเมื่อเทียบกับปีก่อน (คิดจากราคาจริง) สอง อีกไม่กี่เดือนข้างหน้าน่าจะเพิ่มอีกเท่าไร (คิดจากสิ่งที่เคยเกิดขึ้นทุกครั้งที่น้ำมันแพง)",
       pumpFact: (d) => `${d.prod} หน้าปั๊มวันนี้ ${d.now} บาทต่อลิตร เทียบกับ ${d.ago} บาทเมื่อปีก่อน`,
@@ -27,7 +27,7 @@
       nextLeadUp: "ยังไม่จบแค่นี้ อีกไม่กี่เดือนของน่าจะแพงขึ้นอีกประมาณ", nextLeadDown: "ข่าวดีคือ อีกไม่กี่เดือนราคาน่าจะลดลงนิดหน่อย ประมาณ",
       nextWhen: (d) => `ตัวเลขนี้คือส่วนที่จะเพิ่มขึ้นอีกจากที่คุณจ่ายอยู่วันนี้ และน่าจะมากที่สุดราวเดือน${d.m}`,
       nextRange: (d) => `เราคิดอย่างไร ทุกครั้งที่น้ำมันแพงขึ้นตั้งแต่ปี 2546 เราดูว่าราคาอาหาร ค่าไฟ และของอื่น ๆ ของ${d.where}ขยับตามเท่าไรในเดือนต่อ ๆ มา แล้วเอาแบบแผนนั้นมาใช้กับราคาน้ำมันที่ขึ้นมาแล้วในปีนี้ ถ้าคิดจากราคาน้ำมันดิบโลกแทนราคาหน้าปั๊มจะได้ ${d.alt} บาท ส่วนใหญ่ตัวเลขจริงจะห่างจากที่เราประมาณไม่เกิน ${d.err} บาทต่อเดือน`,
-      accuracy: (d) => `แม่นแค่ไหน เราทดสอบย้อนหลัง 3 ปีโดยให้แบบจำลองใช้เฉพาะข้อมูลที่รู้ ณ ตอนนั้น ตัวเลข 6 เดือนล่วงหน้าคลาดเฉลี่ย ${d.rmse} จุดของอัตราเงินเฟ้อ พูดง่าย ๆ ถ้าเราบอกว่าของจะแพงขึ้น 3.0% ของจริงมักอยู่ระหว่าง ${d.lo}% ถึง ${d.hi}% ถ้าเดาว่าไม่มีอะไรเปลี่ยนเลยจะคลาด ${d.naive} จุด`,
+      accuracy: (d) => `แม่นแค่ไหน เราทดสอบย้อนหลัง 3 ปี โดยสร้างแบบจำลองใหม่ทุกเดือนจากข้อมูลในอดีตเท่านั้น แล้วป้อนราคาน้ำมันที่เกิดขึ้นจริงหลังจากนั้น (มันทดสอบว่าน้ำมันส่งผ่านไปยังราคาได้แม่นแค่ไหน ไม่ใช่การเดาราคาน้ำมัน) ตัวเลข 6 เดือนล่วงหน้าคลาดเฉลี่ย ${d.rmse} จุดของอัตราเงินเฟ้อ พูดง่าย ๆ ถ้าเราบอกว่าของจะแพงขึ้น 3.0% ของจริงมักอยู่ระหว่าง ${d.lo}% ถึง ${d.hi}% ถ้าเดาว่าไม่มีอะไรเปลี่ยนเลยจะคลาด ${d.naive} จุด`,
       whatifTitle: "แล้วถ้าน้ำมันดิบเปลี่ยนอีก", up10: "ขึ้นอีก 10%", up20: "ขึ้นอีก 20%", up50: "ขึ้นอีก 50%", down10: "ลดลง 10%",
       whatif: (d) => `ถ้าน้ำมันดิบ${d.dir} จากวันนี้ ${d.prod} น่าจะ${d.pumpDir}ราวลิตรละ ${d.pump} บาท และในช่วงที่หนักที่สุด ครอบครัวคุณจะจ่าย${d.more}อีกราว ${d.peak} บาทต่อเดือน (ถ้ารัฐไม่ตรึงราคาเพิ่ม)`,
       up: "ขึ้น", down: "ลง", moreWord: "เพิ่ม", lessWord: "น้อยลง", pumpUp: "แพงขึ้น", pumpDown: "ถูกลง",
@@ -44,7 +44,7 @@
       typeNote: (d) => `อาหาร ค่าไฟ และของอื่น ๆ ใช้ตัวเลขของ${d.where} ส่วนราคาน้ำมันใช้ราคากรุงเทพฯ (ต่างจังหวัดแพงกว่าไม่กี่สิบสตางค์ตามค่าขนส่ง)`,
       elecKnown: (d) => `ค่าไฟ รัฐกำหนดค่าไฟล่วงหน้าทีละ 4 เดือน งวด ${d.period} กำหนดไว้แล้วที่หน่วยละ ${d.tariff} บาท ${d.change} ดังนั้นค่าไฟจนถึงเดือน${d.until} เราใช้ตัวเลขที่ประกาศจริง ไม่ได้ประมาณ`,
       elecSame: "เท่าเดิมกับงวดก่อน", elecUp: (x) => `เพิ่มขึ้น ${x} จากงวดก่อน`, elecDown: (x) => `ลดลง ${x} จากงวดก่อน`,
-      whatifNote: (d) => `ทำไมราคาหน้าปั๊มไม่ขึ้นเท่าน้ำมันดิบ ตั้งแต่ปี 2546 เมื่อน้ำมันดิบแพงขึ้น ราคาหน้าปั๊มในไทยมักขึ้นแค่ราว ${d.pt} ของที่น้ำมันดิบขึ้น ภายใน 3 เดือน ที่เหลือกองทุนน้ำมันและการลดภาษีช่วยรับไว้ ${d.regime}`,
+      whatifNote: (d) => `ทำไมราคาหน้าปั๊มไม่ขึ้นเท่าน้ำมันดิบ เพราะน้ำมันดิบเป็นแค่ราวครึ่งหนึ่งของราคาหน้าปั๊ม ที่เหลือคือภาษีสรรพสามิต เงินกองทุน และค่าการตลาด ซึ่งคิดเป็นบาทต่อลิตรคงที่ น้ำมันดิบขึ้น 10% จึงดันราคาหน้าปั๊มขึ้นราว 5% แม้ไม่มีการอุดหนุนเลย ข้อมูลตั้งแต่ปี 2546 ก็บอกแบบนั้น คือราคาหน้าปั๊มขยับตามราว ${d.pt} ของน้ำมันดิบภายใน 3 เดือน ส่วนกองทุนน้ำมันทำหน้าที่ปรับอัตราเงินกองทุนเพื่อชะลอการเปลี่ยนแปลง แล้วเก็บเงินคืนทีหลัง ${d.regime}`,
       regimeSub: (d) => `ตอนนี้ (${d.date}) กองทุนน้ำมันกำลังช่วยจ่ายค่าดีเซลให้ลิตรละ ${d.levy} บาท ในช่วงแบบนี้ที่ผ่านมา ราคาหน้าปั๊มขยับตามน้ำมันดิบราว ${d.pt}`,
       regimeCol: (d) => `ตอนนี้ (${d.date}) กองทุนน้ำมันเก็บเงินจากดีเซลลิตรละ ${d.levy} บาท ในช่วงแบบนี้ที่ผ่านมา ราคาหน้าปั๊มขยับตามน้ำมันดิบราว ${d.pt}`,
       fbTitle: "ตัวเลขนี้ช่วยคุณได้ไหม", fbYes: "ช่วยได้", fbSome: "ช่วยได้บ้าง", fbNo: "ไม่ช่วย",
@@ -55,7 +55,7 @@
       prod: { gasohol95: "แก๊สโซฮอล์ 95", gasohol91: "แก๊สโซฮอล์ 91", gasohol_e20: "แก๊สโซฮอล์ E20", diesel_b7: "ดีเซล" },
     },
     en: {
-      brand: "Oil and the cost of living", navHome: "Your calculation", navMethod: "Why trust it", navAdvanced: "Charts and details", 
+      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navMethod: "Why trust it", navAdvanced: "Charts and details", 
       h1: "Oil prices went up. How much more is your family paying each month?",
       lede: "Answer five quick questions and we will tell you two things. One: how much more you are already paying each month than a year ago, worked out from real prices. Two: how much more is likely to come over the next few months, worked out from what has happened every time oil got expensive before.",
       pumpFact: (d) => `${d.prod} at the pump today: ${d.now} baht a litre. A year ago it was ${d.ago}.`,
@@ -78,7 +78,7 @@
       nextLeadUp: "On top of that, prices will probably go up by about another", nextLeadDown: "The good news: prices should come down a little, by about",
       nextWhen: (d) => `This is on top of what you pay today, and it should be at its highest around ${d.m}.`,
       nextRange: (d) => `How we work this out: every time fuel got more expensive since 2003, we looked at how much food, electricity and other prices in the ${d.where} followed over the months after, and we apply that pattern to this year's fuel price rise. Working from world crude oil instead of pump prices gives ${d.alt} baht. Most of the time the real figure ends up within ${d.err} baht a month of our estimate.`,
-      accuracy: (d) => `How accurate is it? We tested it over the past 3 years, letting the model see only what was known at the time. Its 6-month estimates were off by ${d.rmse} points of the inflation rate on average. In plain terms, if we say prices will be up 3.0%, the real figure is usually between ${d.lo}% and ${d.hi}%. Guessing that nothing changes would have been off by ${d.naive} points.`,
+      accuracy: (d) => `How accurate is it? We tested it over the past 3 years: each month the model was re-estimated on past data only, then given the fuel prices that actually happened afterwards (so it tests how well oil feeds into prices, not whether we can guess oil prices). Its 6-month estimates were off by ${d.rmse} points of the inflation rate on average. In plain terms, if we say prices will be up 3.0%, the real figure is usually between ${d.lo}% and ${d.hi}%. Guessing that nothing changes would have been off by ${d.naive} points.`,
       whatifTitle: "What if oil prices move again?", up10: "Up another 10%", up20: "Up another 20%", up50: "Up another 50%", down10: "Down 10%",
       whatif: (d) => `If crude oil goes ${d.dir} from today, ${d.prod} should be about ${d.pump} baht a litre ${d.pumpDir}, and at the worst point your family would pay about ${d.peak} baht a month ${d.more} (unless the government steps in to hold prices down).`,
       up: "up", down: "down", moreWord: "more", lessWord: "less", pumpUp: "more expensive", pumpDown: "cheaper",
@@ -93,7 +93,7 @@
       typeNote: (d) => `Food, electricity and other items use figures for the ${d.where}. Fuel uses the Bangkok pump price (upcountry is a few satang higher because of transport).`,
       elecKnown: (d) => `Electricity: the government sets the electricity price four months at a time. For ${d.period} it is already fixed at ${d.tariff} baht a unit, ${d.change}. So for electricity up to ${d.until} we use the announced figure, not an estimate.`,
       elecSame: "the same as the previous period", elecUp: (x) => `up ${x} on the previous period`, elecDown: (x) => `down ${x} on the previous period`,
-      whatifNote: (d) => `Why pump prices do not rise as much as crude: since 2003, when crude oil has gone up, Thai pump prices have usually risen by only about ${d.pt} of that within three months. The Oil Fund and tax cuts absorb the rest. ${d.regime}`,
+      whatifNote: (d) => `Why pump prices do not rise as much as crude: crude oil is only about half the pump price. Excise, fund levies and the marketing margin are fixed baht amounts per litre, so a 10% rise in crude moves pump prices by roughly 5% even with no subsidy at all. The data since 2003 say the same: pump prices follow about ${d.pt} of a crude move within three months. The Oil Fund adjusts its levy to slow price changes and later charges the money back. ${d.regime}`,
       regimeSub: (d) => `Right now (${d.date}) the Oil Fund is paying ${d.levy} baht of every litre of diesel for you. In periods like this, pump prices followed about ${d.pt} of crude moves.`,
       regimeCol: (d) => `Right now (${d.date}) the Oil Fund is collecting ${d.levy} baht on every litre of diesel. In periods like this, pump prices followed about ${d.pt} of crude moves.`,
       fbTitle: "Did this help you?", fbYes: "Yes, it helped", fbSome: "A little", fbNo: "No",

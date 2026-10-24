@@ -40,7 +40,7 @@ Each item below was built, run through the same rolling backtest, and kept only 
 
 ## How accurate it has been
 
-`thai_oil_cpi/backtest.py` re-estimates each model every month over the last three years using only data available at the time, projects the change in headline inflation over the following months from the shocks that occurred, and compares with the outcome. Root-mean-square error in percentage points, against a benchmark of guessing "no change" (regenerated on every run; see `results/backtest_rolling.csv`):
+`thai_oil_cpi/backtest.py` re-estimates each model every month over the last three years on past data only, then feeds in the oil and pump prices that actually happened over the following months, projects the change in headline inflation from them, and compares with the outcome. It tests how well oil passes through to prices, not whether oil prices can be forecast. Root-mean-square error in percentage points, against a benchmark of guessing "no change" (regenerated on every run; see `results/backtest_rolling.csv`):
 
 | Horizon | Pump-price model | Crude model | Combined | No change |
 |---|---|---|---|---|
@@ -75,6 +75,15 @@ Energy and fuel prices react within a month and fade within a year. Food and cor
 4. **At the pump**: the official price build-up for the chosen fuel from EPPO and the implied change per litre for the selected crude move, with a choice of how much the Oil Fund cushions.
 5. **Crude oil prices**: daily Brent, monthly Dubai versus Brent, and Bangkok retail prices since 2015.
 6. **What the model says**: impulse responses per index, the estimation data, method notes and the live source status.
+
+## Monthly prediction and scorecard (`web/predict.html`)
+
+Before the Ministry of Commerce publishes a month's headline inflation, the site publishes the model's prediction for it and later scores it against the official figure. Every prediction stays on the page, hits and misses alike.
+
+- **Prediction** for target month M = the last published year-on-year rate (M−1) plus the oil-driven change from M−1 to M from the pump-price model (`backtest._oil_component`, estimated on data to M−1), using the month-to-date Bangkok pump-price shock for M. This is the calculation the one-month backtest scores, so its one-month RMSE is the "likely range" (± the `h = 1` row of `results/backtest_rolling.csv`, read at run time). The "no change" rate and the crude model's prediction are stored alongside.
+- **Locking.** `thai_oil_cpi/predict.py` locks the prediction on the first run on or after the 25th of M (Bangkok date), or any run after M has ended, and appends it to `results/predictions.csv` with the lock time and the commit SHA (`GITHUB_SHA` in the Action). Before that the page shows a daily "current estimate, not yet locked" that is not recorded.
+- **Immutability.** The pipeline never rewrites `target_month, locked_at, predicted, low, high, no_change, crude_model, model_version`. When the TPSO figure for M first appears in the cache it fills in `actual, actual_released_at, error, no_change_error, inside_range` once. The Action commits `results/`, so the file's git history is the public timestamp; the page links to it. Rows start with the month the feature went live (October 2026); earlier performance is shown separately as a backtest.
+- **Output.** `web/data/predictions.json` (current estimate or locked row, all rows, running summary, backtest table and one-month backtest series). Tests in `tests/test_predict.py` cover the lock date, immutability across re-runs, scoring, and no look-ahead.
 
 ## Visitor counter, feedback and comments
 
@@ -111,11 +120,12 @@ thai_oil_cpi/
 ├── model.py          # monthly estimation for every (shock, outcome) pair, per household type, and the crude→pump first stage
 ├── projection.py     # observed-shock paths, level paths, scenarios, household breakdown, pump prices
 ├── tariff.py         # announced electricity tariff (Ft) override from data/ft_tariff.json
+├── predict.py        # monthly headline prediction, locking and scorecard (results/predictions.csv)
 ├── backtest.py       # rolling pseudo-out-of-sample evaluation
 ├── pipeline.py       # run everything, write results/ and web/data/latest.json
 ├── app.py            # FastAPI: web app + /api/latest, /api/project, /api/status, /api/refresh
 └── __main__.py       # python -m thai_oil_cpi {sync,run,serve}
-web/                  # index.html + simple.js (simple page), methodology.html + methodology.js (evidence page), advanced.html + app.js, data/latest.json
+web/                  # index.html + simple.js (simple page), predict.html + predict.js (monthly prediction), methodology.html + methodology.js (evidence page), advanced.html + app.js, data/latest.json
 data/cache/           # synced series and sync_status.json (committed so the static site has data)
 data/ft_tariff.json   # ERC electricity tariff announcements (kept by hand)
 data/*.xlsx           # the original hand-curated quarterly files (kept for the notebook and a cross-check test)
