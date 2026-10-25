@@ -85,6 +85,18 @@ Before the Ministry of Commerce publishes a month's headline inflation, the site
 - **Immutability.** The pipeline never rewrites `target_month, locked_at, predicted, low, high, no_change, crude_model, model_version`. When the TPSO figure for M first appears in the cache it fills in `actual, actual_released_at, error, no_change_error, inside_range` once. The Action commits `results/`, so the file's git history is the public timestamp; the page links to it. Rows start with the month the feature went live (October 2026); earlier performance is shown separately as a backtest.
 - **Output.** `web/data/predictions.json` (current estimate or locked row, all rows, running summary, backtest table and one-month backtest series). Tests in `tests/test_predict.py` cover the lock date, immutability across re-runs, scoring, and no look-ahead.
 
+## Oil Fund and pump-price tracker (`web/fuel.html`)
+
+For gasohol 95, 91, E20, E85, diesel B7 and premium benzine the page shows where each baht of a litre goes, what the Oil Fund is paying or collecting, what the fuel would cost without that support, the levy history since 2001 and the Fund's financial position. `thai_oil_cpi/fuel.py` writes `web/data/fuel.json`; the JavaScript only displays it.
+
+- **Per-litre breakdown** from EPPO's daily price structure (`data/cache/eppo_price_structure.json`): refinery price, refinery discount, excise plus municipal tax, Oil Fund levy (negative = subsidy), conservation fund, marketing margin, VAT. Before any derived price is published the parts are checked against EPPO's own wholesale and retail figures (within 0.01 baht); a fuel that fails the check gets no derived prices.
+- **Price without Oil Fund support** = retail − levy × 1.07, because VAT is charged on the wholesale price, which contains the levy. **Without any government support** additionally removes EPPO's `DISCOUNT` column. That column's Thai header in EPPO's spreadsheet is "ส่วนลดราคา ณ โรงกลั่น" (discount on the ex-refinery price): a measure set by the Energy Policy Administration Committee under which refiners pass part of their excess refining margin to diesel (4 baht a litre for 16 September to 31 October 2026). Sources are listed in `fuel.DISCOUNT_MEANING`.
+- **Levy history** from EPPO Table 7 (`data/cache/eppo_oil_fund_monthly.csv`), monthly since 2001, with subsidy months shaded and today's levy marked.
+- **Fund position** from the Oil Fuel Fund Office's weekly "ประมาณการฐานะกองทุนน้ำมันเชื้อเพลิง" PDF (`thai_oil_cpi/sources/offo.py`, parsed with pypdf): net position split between the oil and LPG accounts, plus borrowings, with the sheet's own date. The sync keeps every week seen in `data/cache/offo_fund_status.json`; if the site is down the last good sheet is shown with its date. The balance is never estimated.
+- **Not built:** the monthly cost of the subsidy, because no official monthly sales volume by fuel with a stable download was found.
+
+Tests in `tests/test_fuel.py` check the arithmetic for every fuel, the no-support formula, the failed-source behaviour and the PDF parser against a stored sheet.
+
 ## Visitor counter, feedback and comments
 
 The front page shows how many times it has been opened and how many people said it helped, asks "Did this help you?" and takes an optional comment. All of it runs on Netlify with no extra accounts:
@@ -114,18 +126,19 @@ python -m pytest                  # tests
 
 ```
 thai_oil_cpi/
-├── sources/          # tpso.py, worldbank.py, eia.py, yahoo.py, dbnomics.py, eppo.py, http.py
+├── sources/          # tpso.py, worldbank.py, eia.py, yahoo.py, dbnomics.py, eppo.py, ecb.py, offo.py, http.py
 ├── sync.py           # source chains, cache, status, monthly dataset and nowcast
 ├── lp.py             # Jordà local projections with HAC standard errors
 ├── model.py          # monthly estimation for every (shock, outcome) pair, per household type, and the crude→pump first stage
 ├── projection.py     # observed-shock paths, level paths, scenarios, household breakdown, pump prices
 ├── tariff.py         # announced electricity tariff (Ft) override from data/ft_tariff.json
 ├── predict.py        # monthly headline prediction, locking and scorecard (results/predictions.csv)
+├── fuel.py           # Oil Fund and pump-price tracker payload (web/data/fuel.json)
 ├── backtest.py       # rolling pseudo-out-of-sample evaluation
 ├── pipeline.py       # run everything, write results/ and web/data/latest.json
 ├── app.py            # FastAPI: web app + /api/latest, /api/project, /api/status, /api/refresh
 └── __main__.py       # python -m thai_oil_cpi {sync,run,serve}
-web/                  # index.html + simple.js (simple page), predict.html + predict.js (monthly prediction), methodology.html + methodology.js (evidence page), advanced.html + app.js, data/latest.json
+web/                  # index.html + simple.js (simple page), predict.html + predict.js (monthly prediction), fuel.html + fuel.js (Oil Fund tracker), methodology.html + methodology.js (evidence page), advanced.html + app.js, data/latest.json
 data/cache/           # synced series and sync_status.json (committed so the static site has data)
 data/ft_tariff.json   # ERC electricity tariff announcements (kept by hand)
 data/*.xlsx           # the original hand-curated quarterly files (kept for the notebook and a cross-check test)

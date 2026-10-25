@@ -4,7 +4,7 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",  title: "ทำไมตัวเลขนี้เชื่อถือได้",
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navFuel: "กองทุนน้ำมัน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",  title: "ทำไมตัวเลขนี้เชื่อถือได้",
       lede: "หน้าแรกขอให้คุณเชื่อตัวเลขที่เป็นการประมาณ เราจึงควรพิสูจน์ให้เห็น ไม่ใช่แค่บอก หน้านี้แสดงว่าเราทดสอบอย่างไร ผิดบ่อยแค่ไหน คิดอย่างไร และข้อมูลมาจากไหน ทุกตัวเลขในหน้านี้คำนวณใหม่ทุกวันจากข้อมูลล่าสุด ไม่ได้พิมพ์ไว้ตายตัว",
       backSimple: "กลับไปคำนวณของคุณ", toAdvanced: "ดูกราฟและรายละเอียดทั้งหมด", toCode: "โค้ดและข้อมูลทั้งหมดบน GitHub",
       asOf: (d) => `อัปเดตล่าสุด ${d}`, foot: (d) => `ข้อมูล: กระทรวงพาณิชย์ สนพ. ธนาคารโลก EIA ธนาคารกลางยุโรป อัปเดต ${d}`,
@@ -70,7 +70,7 @@
       latest: "ล่าสุด", cached: "ใช้ข้อมูลสำรอง",
     },
     en: {
-      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navMethod: "Why trust it", navAdvanced: "Charts and details",  title: "Why you can trust these numbers",
+      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navFuel: "Oil Fund", navMethod: "Why trust it", navAdvanced: "Charts and details",  title: "Why you can trust these numbers",
       lede: "The front page asks you to believe an estimate. That deserves proof, not just reassurance. This page shows how the model is tested, how often it is wrong, how it thinks, and where the data comes from. Every figure here is recomputed from the latest data on every run; none of it is typed in.",
       backSimple: "Back to your calculation", toAdvanced: "See all the charts and details", toCode: "All code and data on GitHub",
       asOf: (d) => `Updated ${d}`, foot: (d) => `Sources: Ministry of Commerce, EPPO, World Bank, US EIA, European Central Bank. Updated ${d}`,

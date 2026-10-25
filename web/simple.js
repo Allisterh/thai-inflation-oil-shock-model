@@ -3,7 +3,7 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด", 
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navFuel: "กองทุนน้ำมัน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด", 
       h1: "น้ำมันแพงขึ้นแล้ว ครอบครัวคุณจ่ายเพิ่มเดือนละกี่บาท",
       lede: "ตอบ 5 ข้อสั้น ๆ แล้วเราจะบอกสองอย่าง หนึ่ง ตอนนี้คุณจ่ายเพิ่มไปแล้วเดือนละกี่บาทเมื่อเทียบกับปีก่อน (คิดจากราคาจริง) สอง อีกไม่กี่เดือนข้างหน้าน่าจะเพิ่มอีกเท่าไร (คิดจากสิ่งที่เคยเกิดขึ้นทุกครั้งที่น้ำมันแพง)",
       pumpFact: (d) => `${d.prod} หน้าปั๊มวันนี้ ${d.now} บาทต่อลิตร เทียบกับ ${d.ago} บาทเมื่อปีก่อน`,
@@ -55,7 +55,7 @@
       prod: { gasohol95: "แก๊สโซฮอล์ 95", gasohol91: "แก๊สโซฮอล์ 91", gasohol_e20: "แก๊สโซฮอล์ E20", diesel_b7: "ดีเซล" },
     },
     en: {
-      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navMethod: "Why trust it", navAdvanced: "Charts and details", 
+      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navFuel: "Oil Fund", navMethod: "Why trust it", navAdvanced: "Charts and details", 
       h1: "Oil prices went up. How much more is your family paying each month?",
       lede: "Answer five quick questions and we will tell you two things. One: how much more you are already paying each month than a year ago, worked out from real prices. Two: how much more is likely to come over the next few months, worked out from what has happened every time oil got expensive before.",
       pumpFact: (d) => `${d.prod} at the pump today: ${d.now} baht a litre. A year ago it was ${d.ago}.`,

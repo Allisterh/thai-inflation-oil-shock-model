@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
-from .sources import SourceError, dbnomics, ecb, eia, eppo, tpso, worldbank, yahoo
+from .sources import offo, SourceError, dbnomics, ecb, eia, eppo, tpso, worldbank, yahoo
 
 
 # --------------------------------------------------------------------------
@@ -262,6 +262,34 @@ def sync_eppo(prev: dict, force: bool, max_age_hours: float) -> dict:
     return out
 
 
+def sync_offo(prev: dict, force: bool, max_age_hours: float) -> dict:
+    """Weekly Oil Fund position from the Oil Fuel Fund Office. The cache keeps every week seen
+    (``history``) and the newest (``latest``); when the site is down the last good value is served
+    with its own date."""
+    name = "oil_fund_status"
+    cached = json.loads(C.OFFO_STATUS_JSON.read_text()) if C.OFFO_STATUS_JSON.exists() else None
+    if cached and not force and _fresh(prev.get(name), max_age_hours):
+        st = SeriesStatus(name=name, source=prev[name]["source"], fetched_at=prev[name]["fetched_at"], note="cache is fresh")
+    else:
+        r, st = _run(name, [("Oil Fuel Fund Office weekly status PDF (offo.or.th)", offo.fetch_fund_status)])
+        if r is not None:
+            hist = {h["date"]: h for h in (cached or {}).get("history", [])}
+            if len(hist) < 4:   # first runs: seed the weekly history from every sheet still linked on the page
+                try:
+                    for h in offo.fetch_fund_history():
+                        hist.setdefault(h["date"], h)
+                except Exception as exc:  # the latest sheet is enough to publish; history is a bonus
+                    st.note = f"history backfill failed: {exc}"
+            hist[r["date"]] = {k: r[k] for k in ("date", "oil", "lpg", "total", "borrowings", "source_url")}
+            cached = {"latest": r, "history": [hist[k] for k in sorted(hist)]}
+            C.CACHE_DIR.mkdir(parents=True, exist_ok=True); C.OFFO_STATUS_JSON.write_text(json.dumps(cached, ensure_ascii=False))
+        elif cached:
+            _cached(name, st, prev, None, "source failed; using the last good weekly sheet")
+    if cached:
+        st.last_obs = cached["latest"]["date"]; st.first_obs = cached["history"][0]["date"] if cached.get("history") else None; st.n_obs = len(cached.get("history", []))
+    return asdict(st)
+
+
 def sync_tpso_types(prev: dict, force: bool, national_status: dict) -> dict:
     """Regional and low-income CPI tables, refreshed only when TPSO's lastUpdated stamp changes."""
     name = "tpso_cpi_types"
@@ -322,6 +350,7 @@ def sync_all(force: bool = False, max_age_hours: float = C.DEFAULT_MAX_AGE_HOURS
     status.update(sync_eppo(prev, force, max_age_hours))
     status["tpso_cpi_types"] = sync_tpso_types(prev, force, status["tpso_cpi"])
     status["oil_fund_monthly"] = sync_monthly_frame("oil_fund_monthly", eppo.fetch_oil_fund_history, C.OIL_FUND_CSV, prev, force, max_age_hours * 6, "EPPO petroleum price statistics, Table 7")
+    status["oil_fund_status"] = sync_offo(prev, force, max_age_hours)
     status["food_index_monthly"] = sync_monthly_frame("food_index_monthly", worldbank.fetch_pink_sheet_food_index, C.FOOD_INDEX_CSV, prev, force, max_age_hours, "World Bank Pink Sheet food index")
     _save_status(status)
     return status

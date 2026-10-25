@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>กองทุนน้ำมันและราคาหน้าปั๊ม</title>
+<meta name="description" content="น้ำมันหนึ่งลิตรจ่ายให้ใครบ้าง กองทุนน้ำมันช่วยหรือเก็บเท่าไร ถ้าไม่มีกองทุนราคาจะเป็นเท่าไร และฐานะกองทุนน้ำมันล่าสุด จากข้อมูลทางการ">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%231d2624%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-family=%27sans-serif%27 font-weight=%27700%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5c543%27%3E฿%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="simple.css">
+<style>
+  .prose { max-width: 80ch; }
+  .prose h2 { font-size: 1.35rem; margin: 2em 0 .6em; padding-top: 18px; border-top: 1px solid var(--ink); }
+  .prose h2 small { display: block; font: 500 .85rem var(--font-body); color: var(--ink-2); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 6px; }
+  .prose p, .prose li { font-size: 1.02rem; line-height: 1.65; }
+  .prose ul { padding-left: 1.2em; }
+  .srcline { font-size: .86rem; color: var(--ink-2); line-height: 1.5; margin: 6px 0 0; }
+  .warn { font-size: .9rem; color: var(--up); margin: 6px 0; }
+  .stack { margin: 14px 0 6px; }
+  .stack .row { display: grid; grid-template-columns: 150px 1fr 70px; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+  .stack .name { font-weight: 500; line-height: 1.3; }
+  .stack .name small { display: block; color: var(--ink-2); font-weight: 400; font-size: .8rem; }
+  .stack .price { text-align: right; font: 600 1.05rem var(--font-display); }
+  .stack svg { width: 100%; height: 26px; display: block; }
+  .keys { display: flex; gap: 14px 18px; flex-wrap: wrap; font-size: .86rem; color: var(--ink-2); margin: 8px 0 0; }
+  .keys i { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 5px; border-radius: 2px; }
+  table.t { width: 100%; border-collapse: collapse; font-size: .95rem; margin: 10px 0 6px; font-variant-numeric: tabular-nums; }
+  table.t th, table.t td { text-align: right; padding: 8px 6px; border-bottom: 1px solid var(--axis); vertical-align: top; }
+  table.t th:first-child, table.t td:first-child { text-align: left; }
+  table.t thead th { font-weight: 600; border-bottom: 1px solid var(--ink); font-size: .86rem; line-height: 1.3; }
+  table.t td.sub { color: var(--down); } table.t td.col { color: var(--up); }
+  .fund { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--grid); margin: 12px 0 6px; }
+  .fund > div { padding: 14px 14px 14px 0; border-right: 1px solid var(--grid); }
+  .fund > div + div { padding-left: 14px; }
+  .fund > div:last-child { border-right: 0; }
+  .fund .v { display: block; font: 600 1.7rem var(--font-display); line-height: 1.1; margin-bottom: 4px; }
+  .fund .l { font-size: .88rem; color: var(--ink-2); line-height: 1.4; }
+  .asof { font: 500 .85rem var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: var(--accent); margin: 0 0 4px; }
+  figure { margin: 16px 0 20px; }
+  figure svg { width: 100%; height: auto; display: block; }
+  figcaption { font-size: .9rem; color: var(--ink-2); line-height: 1.5; margin-top: 8px; }
+  .legend { display: flex; gap: 18px; font-size: .9rem; color: var(--ink-2); margin: 6px 0; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px; }
+  .seg { margin: 10px 0; }
+  .links { display: flex; gap: 22px; flex-wrap: wrap; margin: 28px 0 10px; font-size: .95rem; }
+  @media (max-width: 640px) {
+    .stack .row { grid-template-columns: 1fr 64px; } .stack .name { grid-column: 1 / -1; } .stack svg { grid-column: 1; }
+    .fund { grid-template-columns: 1fr; } .fund > div { border-right: 0; border-bottom: 1px solid var(--grid); padding: 10px 0; } .fund > div + div { padding-left: 0; } .fund > div:last-child { border-bottom: 0; }
+    table.t { font-size: .84rem; } table.t th, table.t td { padding: 7px 4px; }
+  }
+</style>
+</head>
+<body class="simple">
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="index.html"><span data-i18n="brand">น้ำมันกับค่าครองชีพ</span></a>
+    <nav class="pages" aria-label="pages"><a href="index.html" data-i18n="navHome">คำนวณของคุณ</a><a href="predict.html" data-i18n="navPredict">คาดการณ์รายเดือน</a><a href="fuel.html" data-i18n="navFuel" aria-current="page">กองทุนน้ำมัน</a><a href="methodology.html" data-i18n="navMethod">ทำไมถึงเชื่อถือได้</a><a href="advanced.html" data-i18n="navAdvanced">กราฟและรายละเอียด</a></nav>
+    <button class="lang" id="langToggle" type="button" aria-label="Switch language">EN</button>
+  </div>
+</header>
+<main class="wrap">
+  <section class="hero">
+    <p class="dateline" id="dateline"></p>
+    <h1 data-i18n="title">น้ำมันหนึ่งลิตร เงินไปอยู่ที่ใคร และกองทุนน้ำมันช่วยคุณอยู่เท่าไร</h1>
+    <p class="lede" data-i18n="lede"></p>
+  </section>
+  <article class="prose" id="prose"></article>
+  <nav class="links">
+    <a class="more" href="index.html" data-i18n="backSimple">กลับไปคำนวณของคุณ</a>
+    <a class="more" href="methodology.html" data-i18n="toMethod">ทำไมถึงเชื่อถือได้</a>
+    <a class="more" href="https://www.eppo.go.th/index.php/th/petroleum/price/structure-oil-price" data-i18n="toEppo">โครงสร้างราคาน้ำมันของ สนพ.</a>
+    <a class="more" href="https://www.offo.or.th/th/estimate/fuelfund-status" data-i18n="toOffo">ฐานะกองทุนน้ำมัน (สกนช.)</a>
+  </nav>
+</main>
+<footer class="wrap foot"><span id="footSources"></span><a href="https://github.com/thaileetrakul27/thai-inflation-oil-shock-model">GitHub</a></footer>
+<script src="fuel.js"></script>
+</body>
+</html>

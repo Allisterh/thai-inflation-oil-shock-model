@@ -31,6 +31,8 @@ OIL_FUND_CSV = CACHE_DIR / "eppo_oil_fund_monthly.csv"
 FOOD_INDEX_CSV = CACHE_DIR / "worldbank_food_index_monthly.csv"
 TPSO_TYPES_CSV = CACHE_DIR / "tpso_cpi_types_long.csv"
 FT_TARIFF_JSON = DATA_DIR / "ft_tariff.json"
+OFFO_STATUS_JSON = CACHE_DIR / "offo_fund_status.json"
+FUEL_JSON = WEB_DATA_DIR / "fuel.json"
 SYNC_STATUS_JSON = CACHE_DIR / "sync_status.json"
 
 # Monthly local-projection specification.

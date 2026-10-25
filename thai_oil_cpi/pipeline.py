@@ -328,4 +328,7 @@ def run(sync: bool = True, force: bool = False, offline: bool = False, sample_st
     # Monthly prediction and scorecard (results/predictions.csv, web/data/predictions.json).
     from .predict import run_predictions
     run_predictions(ds, backtests=payload.get("backtests"))
+    # Oil Fund and pump-price tracker (web/data/fuel.json).
+    from .fuel import run_fuel
+    run_fuel(ds)
     return payload

@@ -4,7 +4,7 @@
   "use strict";
   const T = {
     th: {
-      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",
+      brand: "น้ำมันกับค่าครองชีพ", navHome: "คำนวณของคุณ", navPredict: "คาดการณ์รายเดือน", navFuel: "กองทุนน้ำมัน", navMethod: "ทำไมถึงเชื่อถือได้", navAdvanced: "กราฟและรายละเอียด",
       title: "เงินเฟ้อเดือนนี้จะเป็นเท่าไร เราบอกก่อนทางการประกาศ",
       lede: "ทุกเดือน ก่อนที่กระทรวงพาณิชย์จะประกาศอัตราเงินเฟ้อ เราประกาศตัวเลขคาดการณ์ของเราไว้ก่อน และล็อกไว้ให้แก้ไม่ได้ เมื่อตัวเลขทางการออกมา เราให้คะแนนตัวเองต่อหน้าทุกคน ทุกคำคาดการณ์อยู่บนหน้านี้ถาวร ทั้งที่ถูกและที่ผิด",
       backSimple: "กลับไปคำนวณของคุณ", toMethod: "ทำไมถึงเชื่อถือได้", toCsv: "ไฟล์บันทึกคำคาดการณ์ทั้งหมดบน GitHub",
@@ -38,7 +38,7 @@
       loadError: "โหลดข้อมูลไม่สำเร็จ ลองใหม่อีกครั้ง",
     },
     en: {
-      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navMethod: "Why trust it", navAdvanced: "Charts and details",
+      brand: "Oil and the cost of living", navHome: "Your calculation", navPredict: "Monthly prediction", navFuel: "Oil Fund", navMethod: "Why trust it", navAdvanced: "Charts and details",
       title: "This month's inflation, called before the official figure",
       lede: "Every month, before the Ministry of Commerce publishes the inflation rate, we publish our prediction and lock it so it cannot be changed. When the official figure comes out, we score ourselves in public. Every prediction stays on this page for good, hits and misses alike.",
       backSimple: "Back to your calculation", toMethod: "Why trust it", toCsv: "The full prediction log on GitHub",

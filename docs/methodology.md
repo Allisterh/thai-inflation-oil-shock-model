@@ -179,3 +179,8 @@ For each origin T in the last 36 months the model is re-estimated on observation
 ### Asymmetry
 
 Rises and falls in the crude shock are entered as separate regressors (max(x,0) and min(x,0), each with 12 lags). The two responses differ by less than their standard errors at every horizon examined, so the symmetric estimate is used.
+
+
+### Pump-price decomposition (fuel page)
+
+EPPO's daily price structure gives, per product, the ex-refinery price, any refinery discount, excise, municipal tax, the Oil Fund levy, the conservation-fund levy, the wholesale price, VAT on it, the marketing margin, VAT on that, and the retail price. The identities wholesale = ex-refinery + discount + excise + municipal + Oil Fund + conservation and retail = 1.07 × (wholesale + marketing) are verified to 0.01 baht per fuel before anything derived is published. The price without Oil Fund support is retail − levy × 1.07; without the refinery discount as well, retail − (levy + discount) × 1.07. Because excise, levies and the margin are fixed baht per litre, a given percentage change in crude moves the pump price by a smaller percentage: the refinery price's share of the pump price (shown live on the page) is the first-order pass-through, which is why pump prices follow only about half of crude moves even without subsidy. The Oil Fund levy changes that share over time by slowing price moves and recovering the money later.
