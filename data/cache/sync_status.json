@@ -1,21 +1,21 @@
 {
-  "synced_at": "2026-11-06T03:30:29+00:00",
+  "synced_at": "2026-11-07T02:58:11+00:00",
   "tpso_cpi": {
     "name": "tpso_cpi",
     "source": "TPSO Index API (cpig/filter)",
-    "fetched_at": "2026-11-06T03:31:22+00:00",
+    "fetched_at": "2026-11-07T02:58:28+00:00",
     "first_obs": "1976-01",
-    "last_obs": "2026-09",
-    "n_obs": 609,
+    "last_obs": "2026-10",
+    "n_obs": 610,
     "from_cache": false,
     "errors": [],
     "note": null,
-    "last_updated": "2026-10-06T04:32:39.514018Z"
+    "last_updated": "2026-11-06T11:22:17.045463Z"
   },
   "crude_monthly": {
     "name": "crude_monthly",
     "source": "World Bank Pink Sheet",
-    "fetched_at": "2026-11-06T03:31:23+00:00",
+    "fetched_at": "2026-11-07T02:58:29+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-10",
     "n_obs": 802,
@@ -26,7 +26,7 @@
   "usdthb_monthly_imf": {
     "name": "usdthb_monthly_imf",
     "source": "IMF IFS via DBnomics",
-    "fetched_at": "2026-11-06T03:31:24+00:00",
+    "fetched_at": "2026-11-07T02:58:30+00:00",
     "first_obs": "1957-01",
     "last_obs": "2025-07",
     "n_obs": 823,
@@ -37,7 +37,7 @@
   "brent_daily": {
     "name": "brent_daily",
     "source": "EIA Brent spot (RBRTEd)",
-    "fetched_at": "2026-11-06T03:31:24+00:00",
+    "fetched_at": "2026-11-07T02:58:30+00:00",
     "first_obs": "1987-05-20",
     "last_obs": "2026-11-03",
     "n_obs": 9122,
@@ -48,10 +48,10 @@
   "usdthb_daily": {
     "name": "usdthb_daily",
     "source": "ECB reference rate via Frankfurter",
-    "fetched_at": "2026-11-06T03:31:24+00:00",
+    "fetched_at": "2026-11-07T02:58:31+00:00",
     "first_obs": "1999-12-30",
-    "last_obs": "2026-11-05",
-    "n_obs": 6872,
+    "last_obs": "2026-11-06",
+    "n_obs": 6873,
     "from_cache": false,
     "errors": [],
     "note": null
@@ -59,7 +59,7 @@
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",
     "source": "EPPO oil-prices JSON",
-    "fetched_at": "2026-11-06T03:31:25+00:00",
+    "fetched_at": "2026-11-07T02:58:31+00:00",
     "first_obs": "2026-10-09",
     "last_obs": "2026-11-06",
     "n_obs": 6,
@@ -70,7 +70,7 @@
   "eppo_price_structure": {
     "name": "eppo_price_structure",
     "source": "EPPO oil-structure-prices JSON",
-    "fetched_at": "2026-11-06T03:31:25+00:00",
+    "fetched_at": "2026-11-07T02:58:32+00:00",
     "first_obs": null,
     "last_obs": "2026-11-06",
     "n_obs": 10,
@@ -81,7 +81,7 @@
   "eppo_retail_monthly": {
     "name": "eppo_retail_monthly",
     "source": "EPPO petroleum price statistics, Table 9",
-    "fetched_at": "2026-11-06T03:31:25+00:00",
+    "fetched_at": "2026-11-07T02:58:33+00:00",
     "first_obs": "2003-01",
     "last_obs": "2026-08",
     "n_obs": 284,
@@ -92,21 +92,19 @@
   "tpso_cpi_types": {
     "name": "tpso_cpi_types",
     "source": "TPSO Index API (regions + low income)",
-    "fetched_at": "2026-11-06T03:39:53+00:00",
+    "fetched_at": "2026-11-07T03:02:00+00:00",
     "first_obs": null,
     "last_obs": null,
-    "n_obs": 5,
+    "n_obs": 6,
     "from_cache": false,
-    "errors": [
-      "low_income: TPSO: all hosts failed: POST https://index-api.tpso.go.th/api/cpil/filter failed: HTTP Error 403: Forbidden"
-    ],
+    "errors": [],
     "note": null,
-    "last_updated": "2026-10-06T04:32:39.514018Z"
+    "last_updated": "2026-11-06T11:22:17.045463Z"
   },
   "oil_fund_monthly": {
     "name": "oil_fund_monthly",
     "source": "EPPO petroleum price statistics, Table 7",
-    "fetched_at": "2026-11-06T03:39:54+00:00",
+    "fetched_at": "2026-11-07T03:02:00+00:00",
     "first_obs": "2001-01",
     "last_obs": "2026-08",
     "n_obs": 308,
@@ -117,7 +115,7 @@
   "oil_fund_status": {
     "name": "oil_fund_status",
     "source": "Oil Fuel Fund Office weekly status PDF (offo.or.th)",
-    "fetched_at": "2026-11-06T03:39:57+00:00",
+    "fetched_at": "2026-11-07T03:02:03+00:00",
     "first_obs": "2026-01-04",
     "last_obs": "2026-11-01",
     "n_obs": 34,
@@ -128,7 +126,7 @@
   "food_index_monthly": {
     "name": "food_index_monthly",
     "source": "World Bank Pink Sheet food index",
-    "fetched_at": "2026-11-06T03:39:57+00:00",
+    "fetched_at": "2026-11-07T03:02:03+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-10",
     "n_obs": 802,
