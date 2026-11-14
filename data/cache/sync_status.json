@@ -1,9 +1,9 @@
 {
-  "synced_at": "2026-11-13T03:29:36+00:00",
+  "synced_at": "2026-11-14T03:25:58+00:00",
   "tpso_cpi": {
     "name": "tpso_cpi",
     "source": "TPSO Index API (cpig/filter)",
-    "fetched_at": "2026-11-13T03:30:01+00:00",
+    "fetched_at": "2026-11-14T03:26:23+00:00",
     "first_obs": "1976-01",
     "last_obs": "2026-10",
     "n_obs": 610,
@@ -15,7 +15,7 @@
   "crude_monthly": {
     "name": "crude_monthly",
     "source": "World Bank Pink Sheet",
-    "fetched_at": "2026-11-13T03:30:02+00:00",
+    "fetched_at": "2026-11-14T03:26:24+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-10",
     "n_obs": 802,
@@ -26,7 +26,7 @@
   "usdthb_monthly_imf": {
     "name": "usdthb_monthly_imf",
     "source": "IMF IFS via DBnomics",
-    "fetched_at": "2026-11-13T03:30:03+00:00",
+    "fetched_at": "2026-11-14T03:26:26+00:00",
     "first_obs": "1957-01",
     "last_obs": "2025-07",
     "n_obs": 823,
@@ -37,7 +37,7 @@
   "brent_daily": {
     "name": "brent_daily",
     "source": "EIA Brent spot (RBRTEd)",
-    "fetched_at": "2026-11-13T03:30:04+00:00",
+    "fetched_at": "2026-11-14T03:26:26+00:00",
     "first_obs": "1987-05-20",
     "last_obs": "2026-11-11",
     "n_obs": 9128,
@@ -48,10 +48,10 @@
   "usdthb_daily": {
     "name": "usdthb_daily",
     "source": "ECB reference rate via Frankfurter",
-    "fetched_at": "2026-11-13T03:30:04+00:00",
+    "fetched_at": "2026-11-14T03:26:26+00:00",
     "first_obs": "1999-12-30",
-    "last_obs": "2026-11-12",
-    "n_obs": 6877,
+    "last_obs": "2026-11-13",
+    "n_obs": 6878,
     "from_cache": false,
     "errors": [],
     "note": null
@@ -59,7 +59,7 @@
   "eppo_retail_daily": {
     "name": "eppo_retail_daily",
     "source": "EPPO oil-prices JSON",
-    "fetched_at": "2026-11-13T03:30:04+00:00",
+    "fetched_at": "2026-11-14T03:26:27+00:00",
     "first_obs": "2026-10-09",
     "last_obs": "2026-11-11",
     "n_obs": 7,
@@ -70,7 +70,7 @@
   "eppo_price_structure": {
     "name": "eppo_price_structure",
     "source": "EPPO oil-structure-prices JSON",
-    "fetched_at": "2026-11-13T03:30:04+00:00",
+    "fetched_at": "2026-11-14T03:26:27+00:00",
     "first_obs": null,
     "last_obs": "2026-11-13",
     "n_obs": 12,
@@ -81,10 +81,10 @@
   "eppo_retail_monthly": {
     "name": "eppo_retail_monthly",
     "source": "EPPO petroleum price statistics, Table 9",
-    "fetched_at": "2026-11-13T03:30:05+00:00",
+    "fetched_at": "2026-11-14T03:26:27+00:00",
     "first_obs": "2003-01",
-    "last_obs": "2026-08",
-    "n_obs": 284,
+    "last_obs": "2026-09",
+    "n_obs": 285,
     "from_cache": false,
     "errors": [],
     "note": null
@@ -92,7 +92,7 @@
   "tpso_cpi_types": {
     "name": "tpso_cpi_types",
     "source": "TPSO Index API (regions + low income)",
-    "fetched_at": "2026-11-13T03:33:50+00:00",
+    "fetched_at": "2026-11-14T03:27:40+00:00",
     "first_obs": null,
     "last_obs": null,
     "n_obs": 6,
@@ -104,10 +104,10 @@
   "oil_fund_monthly": {
     "name": "oil_fund_monthly",
     "source": "EPPO petroleum price statistics, Table 7",
-    "fetched_at": "2026-11-13T03:33:50+00:00",
+    "fetched_at": "2026-11-14T03:27:41+00:00",
     "first_obs": "2001-01",
-    "last_obs": "2026-08",
-    "n_obs": 308,
+    "last_obs": "2026-09",
+    "n_obs": 309,
     "from_cache": false,
     "errors": [],
     "note": null
@@ -115,7 +115,7 @@
   "oil_fund_status": {
     "name": "oil_fund_status",
     "source": "Oil Fuel Fund Office weekly status PDF (offo.or.th)",
-    "fetched_at": "2026-11-13T03:33:52+00:00",
+    "fetched_at": "2026-11-14T03:27:45+00:00",
     "first_obs": "2026-01-04",
     "last_obs": "2026-11-08",
     "n_obs": 35,
@@ -126,7 +126,7 @@
   "food_index_monthly": {
     "name": "food_index_monthly",
     "source": "World Bank Pink Sheet food index",
-    "fetched_at": "2026-11-13T03:33:52+00:00",
+    "fetched_at": "2026-11-14T03:27:45+00:00",
     "first_obs": "1960-01",
     "last_obs": "2026-10",
     "n_obs": 802,
